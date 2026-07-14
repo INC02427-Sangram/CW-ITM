@@ -25,7 +25,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import StorageIcon from "@mui/icons-material/Storage";
 import { useTranslation } from "react-i18next";
-import ExcelViewer from "../../Sales Order/ExcelViewer";
+// import ExcelViewer from "../../Sales Order/ExcelViewer";
 import { useTheme } from "@mui/material/styles";
 import { Refresh } from "@cw/rds/icons";
 import BusyIndicator from "../../../utility/BusyIndicator";
@@ -609,7 +609,7 @@ const SystemConfig = () => {
                   {t("Template Preview")}
                 </Typography>
               </Box>
-              {previewTemplate && <ExcelViewer base64Data={previewTemplate} />}
+              {/* {previewTemplate && <ExcelViewer base64Data={previewTemplate} />} */}
               <Box
                 sx={{
                   p: 3,

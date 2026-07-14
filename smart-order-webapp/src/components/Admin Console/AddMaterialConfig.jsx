@@ -35,7 +35,6 @@ import InfoIcon from "@mui/icons-material/Info";
 import BusyIndicator from "../../utility/BusyIndicator";
 import fnServiceRequest from "../../utility/fnServiceRequest";
 import CustomTable from "../../utility/Custom Components/CustomTable";
-import ExcelViewer from "../Sales Order/ExcelViewer";
 import { getMaterialConfigColumns } from "./adminTableConfigs";
 import { setMessageToastForAdminConsole } from "../../redux/reducers/appReducer";
 import useDebouncedSearch from "../../hooks/useDebouncedSearch";
@@ -489,7 +488,7 @@ const AddMaterialConfig = () => {
                 <DialogContent dividers sx={{ p: 0, height: '75vh' }}>
                     {viewBase64 &&
                         <div>
-                            <ExcelViewer base64Data={viewBase64} />
+                            {/* <ExcelViewer base64Data={viewBase64} /> */}
                         </div>
 
                     }

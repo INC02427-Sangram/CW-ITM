@@ -187,6 +187,11 @@
   "Manage and configure custom workflows.": "Manage and configure custom workflows",
   "senderEmail": "Sender Email",
   "poUnitPrice": "PO Unit Price",
-  "poTotalAmount": "PO Net Price"
+  "poTotalAmount": "PO Net Price",
+  "backToBackTrading": "Back to Back Trading",
+  "purchaseTrading": "Purchase Trading",
+  "salesTrading": "Sales Trading",
+  "outboundDelivery": "Outbound Delivery",
+  "invoices": "Invoices"
 
 }

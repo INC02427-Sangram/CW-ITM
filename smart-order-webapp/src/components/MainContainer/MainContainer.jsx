@@ -1,12 +1,9 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Routes, Route, Navigate } from "react-router-dom";
-import SalesOrder from "../Sales Order/SalesOrder";
 import Dashboard from "../Dashboard/Dashboard";
 import AdminConsole from "../Admin Console/AdminConsole";
 import applicationConfig from "../../dataStore/applicationConfig";
-import DetailsScreen from "../Sales Order/DetailsScreen";
-import ExceptionMatchView from "../Sales Order/Exception Match/ExceptionMatchView";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { setCurrentModule } from "../../redux/reducers/appReducer";
@@ -59,25 +56,11 @@ const MainContainer = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Navigate to="/salesOrder" />} />
+        <Route path="/" element={<Navigate to="/dashboard" />} />
         <Route
           exact
           path="/dashboard"
           element={<ProtectedRoute moduleKey="Dashboard"><Dashboard metaData={currentModuleMetaData?.at(0)} /></ProtectedRoute>}
-        />
-        <Route
-          exact
-          path="/salesOrder"
-          element={<ProtectedRoute moduleKey="Sales Order"><SalesOrder metaData={currentModuleMetaData?.at(0)} /></ProtectedRoute>}
-        />
-        <Route
-          exact
-          path="/salesOrder/:orderHeaderId"
-          element={<ProtectedRoute moduleKey="Sales Order"><DetailsScreen /></ProtectedRoute>}
-        />
-        <Route
-          path="/salesOrderExceptionMatch/:orderHeaderId"
-          element={<ProtectedRoute moduleKey="Sales Order"><ExceptionMatchView /></ProtectedRoute>}
         />
         <Route
           path="/adminConsole/*"
