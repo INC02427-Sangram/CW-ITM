@@ -34,7 +34,6 @@ import ListViewHeader from "./ListViewHeader";
 import { Refresh, Download, Upload, FilePen } from '@cw/rds/icons';
 import { Chip } from "@cw/rds";
 import moment from "moment";
-import Unprocessed from "./Unprocessed";
 import { DateTimeChip } from "../../utility/Custom Components/CustomChips";
 import {
   DOC_STATUS_PENDING_FOR_APPROVAL,
@@ -795,7 +794,8 @@ const ListViewTable = ({ totalRecords, metaData, filteredDate, setFilteredDate }
       </Accordion>
 
       {selectedStatusTab === 8 ? (
-        <Unprocessed />
+        // <Unprocessed />
+        <></>
       ) : (
       <Box sx={{ p: 2 }}>
         {soColumnList && Array.isArray(soColumnList) && soColumnList.length > 0 ? (

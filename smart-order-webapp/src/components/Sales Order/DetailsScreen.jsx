@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import "./Style.css";
 import SplitPane from "react-split-pane";
 import { setMessagePopoverStatus } from "../../redux/reducers/appReducer";
-import ViewPoDocument from "./ViewPoDocument";
 import { setBusyIndicatorForDetailScreen } from "../../redux/reducers/appReducer";
 import {
   setWorkflowTaskDetails,
@@ -831,11 +830,11 @@ const DetailsScreen = () => {
                   >
                     <div className="pane-left">{mainContent}</div>
                     <div className="pane-right">
-                      <ViewPoDocument
+                      {/* <ViewPoDocument
                         splitScreenFlag={splitScreenFlag}
                         setSplitScreenFlag={setSplitScreenFlag}
                         setGridItemWidth={setGridItemWidth}
-                      />
+                      /> */}
                     </div>
                   </SplitPane>
                 </div>
@@ -850,11 +849,11 @@ const DetailsScreen = () => {
                       transformOrigin={{ vertical: 'center', horizontal: 'center' }}
                       PaperProps={{ style: { width: '80vw', height: '70vh', maxWidth: '80vw', maxHeight: '70vh', overflow: 'auto' } }}
                     >
-                      <ViewPoDocument
+                      {/* <ViewPoDocument
                         splitScreenFlag={splitScreenFlag}
                         setSplitScreenFlag={setSplitScreenFlag}
                         setGridItemWidth={setGridItemWidth}
-                      />
+                      /> */}
                     </Popover>
                   )}
                 </>

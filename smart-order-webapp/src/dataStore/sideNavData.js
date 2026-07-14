@@ -4,7 +4,6 @@ const sideNavContents = (t, userRoles, moduleAccess = {}) => {
   const accessByLabel = {
     [t("dashboard")]: moduleAccess["Dashboard"] === true,
     [t("salesOrder")]: moduleAccess["Sales Order"] === true,
-    [t("documentManagement")]: moduleAccess["Document Management"] === true,
     [t("adminConsole")]:
       moduleAccess["Config Cockpit"] === true ||
       moduleAccess["User Management"] === true ||
@@ -33,10 +32,6 @@ const sideNavContents = (t, userRoles, moduleAccess = {}) => {
       visiblity: accessByLabel[t("salesOrder")] === true,
     },
     {
-      label: t("documentManagement"),
-      visiblity: accessByLabel[t("documentManagement")] === true,
-    },
-    {
       label: t("adminConsole"),
       visiblity: accessByLabel[t("adminConsole")] === true,
     },
@@ -46,7 +41,6 @@ const sideNavContents = (t, userRoles, moduleAccess = {}) => {
 const sideNavModuleNames = [
   "Dashboard",
   "Sales Order",
-  "Document Management",
   "Config Cockpit",
 ];
 

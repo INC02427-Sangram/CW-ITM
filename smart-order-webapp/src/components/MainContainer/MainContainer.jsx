@@ -4,7 +4,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import SalesOrder from "../Sales Order/SalesOrder";
 import Dashboard from "../Dashboard/Dashboard";
 import AdminConsole from "../Admin Console/AdminConsole";
-import DocumentManagement from "../Document Management/DocumentManagement";
 import applicationConfig from "../../dataStore/applicationConfig";
 import DetailsScreen from "../Sales Order/DetailsScreen";
 import ExceptionMatchView from "../Sales Order/Exception Match/ExceptionMatchView";
@@ -79,11 +78,6 @@ const MainContainer = () => {
         <Route
           path="/salesOrderExceptionMatch/:orderHeaderId"
           element={<ProtectedRoute moduleKey="Sales Order"><ExceptionMatchView /></ProtectedRoute>}
-        />
-        <Route
-          exact
-          path="/documentManagement"
-          element={<ProtectedRoute moduleKey="Document Management"><DocumentManagement metaData={currentModuleMetaData?.at(0)} /></ProtectedRoute>}
         />
         <Route
           path="/adminConsole/*"
