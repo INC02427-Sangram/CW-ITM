@@ -1,0 +1,54 @@
+{
+  "xsappname": "cw-iom-xsuaa",
+  "tenant-mode": "dedicated",
+  "description": "Security profile of called application",
+  "scopes": [
+    {
+      "name": "uaa.user",
+      "description": "UAA"
+    },
+    {
+      "name": "$XSAPPNAME.sales-admin",
+      "description": "Admin Access"
+    },
+    {
+      "name": "$XSAPPNAME.sales-rep",
+      "description": "Sales Order"
+    },
+    {
+      "name": "$XSAPPNAME.super-admin",
+      "description": "All Access"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "Token_Exchange",
+      "description": "UAA",
+      "scope-references": ["uaa.user"]
+    },
+    {
+      "name": "sales-admin",
+      "description": "Admin Access",
+      "scope-references": ["$XSAPPNAME.sales-admin"]
+    },
+    {
+      "name": "sales-rep",
+      "description": "Sales Order",
+      "scope-references": ["$XSAPPNAME.sales-rep"]
+    },
+    {
+      "name": "super-admin",
+      "description": "All access",
+      "scope-references": ["$XSAPPNAME.super-admin"]
+    }
+  ],
+  "oauth2-configuration": {
+    "token-validity": 60480,
+    "refresh-token-validity": 2592000,
+    "redirect-uris": [
+      "https://*.eu10-004.hana.ondemand.com/**",
+      "https://**.applicationstudio.cloud.sap/**",
+      "http://localhost:5000/login/callback"
+    ]
+  }
+}

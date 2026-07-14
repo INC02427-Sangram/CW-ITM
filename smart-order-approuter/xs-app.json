@@ -1,0 +1,106 @@
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "route",
+  "logout": {
+    "logoutEndpoint": "/do/logout",
+    "logoutPage": "/logout.html"
+  },
+  "routes": [
+    {
+      "source": "^/WorkRulesServices/",
+      "target": "/rest/",
+      "destination": "cw-caf-idm-services",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/IDMServices/",
+      "target": "/idm/",
+      "destination": "cw-caf-idm-services-v3",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/cw_caf_cherrybot_services/",
+      "target": "/",
+      "destination": "cw_caf_cherrybot_services",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/JavaServices_Oauth/(.*)$",
+      "target": "$1",
+      "authenticationType": "xsuaa",
+      "destination": "cw_iom_salesorder",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/JavaServices_Oauth1/(.*)$",
+      "target": "$1",
+      "authenticationType": "xsuaa",
+      "destination": "cw_iom_adminconsole",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/JavaServices_Oauth2/(.*)$",
+      "target": "$1",
+      "authenticationType": "xsuaa",
+      "destination": "cw_iom_dashboard",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/IDMApi/(.*)$",
+      "target": "/rest/$1",
+      "destination": "cw-caf-idm-services",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/IWAApi/(.*)$",
+      "target": "/$1",
+      "destination": "cw-caf-iwa-services",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/user-api(.*)",
+      "target": "$1",
+      "service": "sap-approuter-userapi",
+      "cacheControl": "no-cache"
+    },
+    {
+      "source": "^/ITMJavaServices/",
+      "target": "/",
+      "destination": "ITMJavaServices",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/CrudApiServices/",
+      "target": "/",
+      "destination": "CrudServices",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/WorkNetServices/",
+      "target": "/",
+      "destination": "WorkNetServices",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/NativeWorkflowUiUrl/",
+      "target": "/",
+      "destination": "NativeWorkflowServices",
+      "authenticationType": "xsuaa",
+      "csrfProtection": false
+    },
+    {
+      "source": "^(.*)",
+      "target": "CW_IOM/$1",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    }
+  ]
+}

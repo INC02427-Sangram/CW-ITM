@@ -1,0 +1,30 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: none   # ← disable CI trigger on main
+ 
+pr:
+  branches:
+    include:
+      - feature
+ 
+pool:
+  vmImage: 'ubuntu-latest'  # or 'windows-latest'
+
+variables:
+- group: "GITHUB_COPILOT_PAT"
+- name: github_copilot_pat
+  value: $[variables.GITHUB_PAT_ORG]
+
+steps:
+- checkout: self
+  fetchDepth: 0
+ 
+- task: CopilotCodeReview@1
+  displayName: 'Copilot Code Review-SOA Team'
+  inputs:
+    githubPat: '$(github_copilot_pat)'
+    useSystemAccessToken: true
+    diffOnlyReview: true

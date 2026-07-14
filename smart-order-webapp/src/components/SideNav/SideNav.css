@@ -1,0 +1,189 @@
+.sideNav {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1f2a44;
+  width: 5.7rem;
+  align-items: center;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 100;
+  padding-top: 6px;
+  gap: 5px;
+}
+
+.sideNavOptionTile {
+  font-size: 12px;
+  font-weight: 400;
+  font-family: "Roboto", sans-serif;
+  min-height: 4.5rem;
+  width: 4.8rem;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  padding: 4px 0px;
+  border-radius: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.sideNavOptionTile.selectedOption {
+  /* background: #eae9ff; */
+  border-radius: 4px;
+  font-weight: bold;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.sideNavOptionTile p {
+  margin-top: 0.8rem;
+}
+
+.sideNavOptionIcon {
+  height: 1.125rem;
+  width: 1.125rem;
+  transition: fill 0.3s ease;
+}
+
+.sideNavOptionTile.selectedOption .sideNavOptionIcon {
+  fill: #3730c7;
+}
+
+.sideNavOptionTile:hover .sideNavOptionIcon {
+  fill: #3730c7; /* Change icon color on hover */
+}
+
+.moreOptionsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  width: 14rem;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  border-radius: 0.5rem;
+  padding-block: 0.2rem;
+}
+
+.moreOptionsContainer .sideNavOptionTile {
+  min-height: 3.5rem;
+  height: auto;
+  margin: 0.2rem;
+}
+
+.sideNav.collapsed {
+  width: 80px;
+  transition: all 0.3s ease;
+}
+
+.iconBadge {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: transparent;
+  place-items: center;
+  line-height: 0;
+}
+
+.iconBadge > svg,
+.iconBadge .sideNavOptionIcon {
+  width: 20px !important;
+  height: 20px !important;
+  display: block;
+}
+
+.sideNavOptionTile.selectedOption .iconBadge {
+  background: #edebff;
+  width: 32px;
+  height: 32px;
+}
+
+.sideNavOptionTile .sideNavOptionIcon {
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  fill: currentColor;
+}
+
+.sideNavOptionTile.selectedOption .sideNavOptionIcon {
+  color: #3730c7;
+  fill: #3730c7;
+}
+
+.sideNavOptionTile.selectedOption p {
+  font-weight: 600;
+  color: #fff;
+}
+
+.sideNavOptionTile:not(.selectedOption):hover {
+  background: #f1f3f5;
+}
+.sideNavOptionTile.selectedOption:hover {
+  background: #fff;
+}
+
+.sideNavOptionTile.selectedOption p,
+.sideNavOptionTile.selectedOption:hover p {
+  font-weight: 600;
+}
+
+.sideNavOptionTile.wide {
+  width: 5.3rem;
+}
+
+.sideNavLabel {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  font-weight: 500;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  color: #fff;
+}
+
+.sideNavOptionTile.selectedOption .sideNavLabel {
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.sideNavOptionTile {
+  gap: 1px;
+}
+
+.sideNavOptionTile p {
+  margin-top: 0 !important;
+}
+
+/* shailwi changes */
+.sideNavOptionTile:hover,
+.sideNavOptionTile:not(.selectedOption):hover {
+  background: transparent;
+}
+
+.sideNavOptionTile:hover .iconBadge {
+  background: #edebff;
+}
+
+.sideNavOptionTile:hover .sideNavOptionIcon {
+  color: #3730c7;
+  fill: currentColor;
+}
+
+.sideNavOptionTile.pendingSelection .iconBadge {
+  background: #f1f3f5;
+}
+
+.sideNavOptionTile.pendingSelection {
+  background: #fff;
+}

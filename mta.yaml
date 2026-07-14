@@ -1,0 +1,72 @@
+ID: CW_IOM
+_schema-version: "2.1"
+parameters:
+    deploy_mode: html5-repo
+version: 1.1.0
+modules:
+    - name: cw-iom
+      type: approuter.nodejs
+      path: smart-order-approuter
+      properties:
+          SEND_XFRAMEOPTIONS: false
+      parameters:
+          disk-quota: 512M
+          memory: 256M
+      requires:
+          - name: cw-iom-Html5RepoRuntime
+          - name: cw-iom-destination
+          - name: cw-iom-connectivity
+          - name: cw-iom-xsuaa
+    - name: cw-iom-deployer
+      type: com.sap.html5.application-content
+      path: smart-order-ui-deployer
+      parameters:
+          disk-quota: 512M
+          memory: 256M
+      requires:
+          - name: cw-iom-Html5RepoHost
+      build-parameters:
+          requires:
+              - name: smart-order-webapp
+                artifacts:
+                    - "./*"
+                target-path: resources/smart-order-webapp
+    - name: smart-order-webapp
+      type: html5
+      path: smart-order-webapp
+      build-parameters:
+          builder: custom
+          commands:
+              - npm install -f
+          supported-platforms: []
+          build-result: dist
+resources:
+    - name: cw-iom-Html5RepoRuntime
+      parameters:
+          service-plan: app-runtime
+          service: html5-apps-repo
+      type: org.cloudfoundry.managed-service
+    - name: cw-iom-Html5RepoHost
+      parameters:
+          service-plan: app-host
+          service: html5-apps-repo
+          config:
+              sizeLimit: 100
+      type: org.cloudfoundry.managed-service
+    - name: cw-iom-xsuaa
+      parameters:
+        path: ./xs-security.json
+        service-plan: application
+        service: xsuaa
+      type: org.cloudfoundry.managed-service
+    - name: cw-iom-connectivity
+      parameters:
+        service-plan: lite
+        service: connectivity
+      type: org.cloudfoundry.managed-service
+    - name: cw-iom-destination
+      parameters:
+        service-plan: lite
+        service: destination
+      type: org.cloudfoundry.managed-service
+    

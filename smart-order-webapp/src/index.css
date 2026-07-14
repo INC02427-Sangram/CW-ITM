@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.full-height {
+    height: 100%;
+}
+.custom-Autocomplete{
+  width: 110% !important;
+}
+/* Dropzone snackbar */
+.dropzone-snackbar {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin: 0 !important;
+}
+ 
+.dropzone-snackbar .MuiSnackbarContent-root {
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-items: flex-start !important;
+ 
+  background-color: #9b4040 !important;
+  border: 1px solid #fecaca !important;
+  color: #e6dede !important;          
+  box-shadow: none !important;
+  border-radius: 10px !important;
+ 
+  padding: 8px 12px !important;
+  min-width: unset !important;
+  max-width: 520px !important;
+}
+ 
+.dropzone-snackbar .MuiSnackbarContent-message {
+  margin: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+ 
+.dropzone-snackbar .MuiSnackbarContent-action {
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: flex-start !important;
+}
+ 
+.dropzone-snackbar .MuiSvgIcon-root,
+.dropzone-snackbar .MuiSnackbarContent-action .MuiButtonBase-root {
+  color: #ca5d47 !important;
+}
