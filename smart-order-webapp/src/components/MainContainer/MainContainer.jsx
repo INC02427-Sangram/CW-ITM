@@ -9,6 +9,7 @@ import { useLocation } from "react-router-dom";
 import { setCurrentModule } from "../../redux/reducers/appReducer";
 import { getModuleNameFromPathName } from "../../utility/utilityFunctions";
 import { Typography, Box } from "@mui/material";
+import BackToBacktrading from "../../pages/BackToBackTrading/BackToBacktrading";
 //Added ProtectedRoute component to handle authorization based on module access
 const Unauthorized = () => (
   <Box sx={{ textAlign: "center", mt: "15%", px: 2 }}>
@@ -61,6 +62,14 @@ const MainContainer = () => {
           exact
           path="/dashboard"
           element={<ProtectedRoute moduleKey="Dashboard"><Dashboard metaData={currentModuleMetaData?.at(0)} /></ProtectedRoute>}
+        />
+        <Route
+          path="/backToBackTrading"
+          element={
+          // <ProtectedRoute moduleKey="backToBackTrading">
+            <BackToBacktrading metaData={currentModuleMetaData?.at(0)} />
+            //</ProtectedRoute>
+            }
         />
         <Route
           path="/adminConsole/*"

@@ -102,7 +102,6 @@ html, body {
 .header-status *,
 .header-status svg {
   -webkit-user-drag: none;
-  user-drag: none;
   pointer-events: none;
 }
 .footer {
@@ -134,9 +133,6 @@ html, body {
 
 .MuiTablePagination-root .MuiTablePagination-selectLabel {
   visibility: hidden !important;
-}
-.MuiTablePagination-root .MuiInputBase-root {
-  /* visibility: hidden !important; */
 }
 
 .MuiTablePagination-selectLabel {
@@ -177,4 +173,10 @@ html, body {
 /* Also target any chips within table cells */
 .MuiDataGrid-cell .MuiChip-label {
   font-size: 12px !important;
+}
+.outer_container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
 }
