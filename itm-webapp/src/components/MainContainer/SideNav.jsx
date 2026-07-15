@@ -1,69 +1,8 @@
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./SideNav.css";
 import { Box } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ShoppingCart from "@mui/icons-material/ShoppingCart";
-import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
-import ReceiptIcon from "@mui/icons-material/Receipt";
-import DescriptionIcon from "@mui/icons-material/Description";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import SettingsIcon from "@mui/icons-material/Settings";
-// TODO: replace with actual i18n hook (e.g. useTranslation)
-const t = (key) => key;
-
-// TODO: replace with actual location from react-router-dom useLocation
-const location = { pathname: "/" };
-
-// TODO: replace with actual icon renderer
-const renderIcon = (_label, _isSelected) => {
-  switch (_label) {
-    case "Dashboard":
-      return (
-        <span className="icon">
-          <DashboardIcon />
-        </span>
-      );
-    case "Back-to-Back":
-      return (
-        <span className="icon">
-          <PublishedWithChangesIcon />
-        </span>
-      );
-    case "Purchase Trading":
-      return (
-        <span className="icon">
-          {" "}
-          <ShoppingCart />
-        </span>
-      );
-    case "Sales Trading":
-      return (
-        <span className="icon">
-          <ReceiptIcon />
-        </span>
-      );
-    case "Invoices":
-      return (
-        <span className="icon">
-          <DescriptionIcon />
-        </span>
-      );
-    case "Outbound Delivery":
-      return (
-        <span className="icon">
-          <LocalShippingIcon />
-        </span>
-      );
-    case "Admin Console":
-      return (
-        <span className="icon">
-          <SettingsIcon />
-        </span>
-      );
-    default:
-      return <span className="icon"></span>;
-  }
-};
+import { getNavigationRoutes } from "../../config/routes.config";
 
 // TODO: replace with actual theme from @mui/material useTheme
 const theme = {
@@ -77,29 +16,24 @@ const theme = {
   },
 };
 
-const visibleOptions = [
-  { __index: 0, id: "dashboard", label: "Dashboard" },
-  { __index: 1, id: "back-to-back-trading", label: "Back-to-Back" },
-  { __index: 2, id: "purchase-to-stock", label: "Purchase Trading" },
-  { __index: 3, id: "sell-from-stock", label: "Sales Trading" },
-  { __index: 4, id: "outboundDelivery", label: "Outbound Delivery" },
-  { __index: 5, id: "invoices", label: "Invoices" },
-  { __index: 6, id: "admin-console", label: "Admin Console" },
-];
+export default function SideNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
-const sideNavModuleNames = Object.fromEntries(
-  visibleOptions.map((o) => [o.__index, o.id]),
-);
+  const navigationRoutes = getNavigationRoutes();
 
-export default function SideNav({ active, onNavigate }) {
+  const onSelectModule = (path) => {
+    navigate(path);
+  };
 
-  const currentModule = active;
-
-  const [isSubNavOpen] = useState(false);
-
-  const onSelectModule = (e) => {
-    const index = parseInt(e.currentTarget.id, 10);
-    onNavigate(sideNavModuleNames[index]);
+  const renderIcon = (IconComponent) => {
+    if (!IconComponent) return <span className="icon"></span>;
+    return (
+      <span className="icon">
+        <IconComponent />
+      </span>
+    );
   };
 
   return (
@@ -115,31 +49,18 @@ export default function SideNav({ active, onNavigate }) {
           }
         }
       >
-        {visibleOptions.map((content) => {
-          const isSelected = content.id === active;
-
-          const isConfigCockpit =
-            content?.label === "Config Cockpit" ||
-            content?.label === t("configCockpit");
-          const isOnAdminRoute = location.pathname.startsWith("/adminConsole");
-          const shouldShowPending =
-            isConfigCockpit && isSubNavOpen && !isOnAdminRoute;
-
-          const isWide =
-            content?.label === "Document Management" ||
-            content?.label === t("documentManagement") ||
-            (isSelected &&
-              (content?.label === "Config Cockpit" ||
-                content?.label === t("configCockpit")));
+        {navigationRoutes.map((route) => {
+          const isSelected = location.pathname === route.path;
+          const translatedLabel = t(route.label);
 
           return (
             <Box
-              className={`sideNavOptionTile ${isSelected ? "selectedOption" : ""} ${isWide ? "wide" : ""} ${shouldShowPending ? "pendingSelection" : ""}`}
-              key={content?.label}
-              onClick={onSelectModule}
-              id={content.__index}
+              className={`sideNavOptionTile ${isSelected ? "selectedOption" : ""}`}
+              key={route.id}
+              onClick={() => onSelectModule(route.path)}
               sx={{
                 // color: theme.palette.text.primary,
+                cursor: "pointer",
 
                 "&:not(.selectedOption):hover": {
                   background: "transparent !important",
@@ -175,20 +96,12 @@ export default function SideNav({ active, onNavigate }) {
                     fontWeight: "700 !important",
                   },
                 },
-
-                // Override pending styles
-                "&.pendingSelection": {
-                  background: `${theme.palette.background.default} !important`,
-                  "& .iconBadge": {
-                    background: `${theme.palette.action.hover} !important`,
-                  },
-                },
               }}
             >
               <div className="iconBadge">
-                {renderIcon(content?.label, isSelected)}
+                {renderIcon(route.icon)}
               </div>
-              <p className="sideNavLabel">{content?.label}</p>
+              <p className="sideNavLabel">{translatedLabel}</p>
             </Box>
           );
         })}
