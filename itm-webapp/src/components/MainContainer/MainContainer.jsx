@@ -1,4 +1,5 @@
 import { Typography, Box } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 const moduleLabels = {
   dashboard: "Dashboard",
@@ -11,6 +12,7 @@ const moduleLabels = {
 };
 
 const MainContainer = ({ active }) => {
+  const { t } = useTranslation();
   const label = moduleLabels[active] ?? active;
 
   return (
@@ -25,7 +27,7 @@ const MainContainer = ({ active }) => {
         }}
       >
         <Typography variant="h5" fontWeight={600} gutterBottom>
-          {label}
+          {t(label)}
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Content for {label} will be loaded here.
