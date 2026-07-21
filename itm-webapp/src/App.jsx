@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CircularProgress, Box } from "@mui/material";
 import "./App.css";
+import "./theme-light.css"
 import AppHeader from "./components/MainContainer/AppHeader";
 import SideNav from "./components/MainContainer/SideNav";
 import MainContainer from "./components/MainContainer/MainContainer";

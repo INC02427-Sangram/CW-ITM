@@ -10,7 +10,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import { lazy } from "react";
 
 const Dashboard = lazy(() => import("../pages/Dashboard"));
-const BackToBackTrading = lazy(() => import("../pages/BackToBacktrading"));
+const BackToBackTrading = lazy(() => import("../pages/B2BTrading/BackToBacktrading"));
 const PurchaseTrading = lazy(() => import("../pages/PurchaseTrading"));
 const SalesTrading = lazy(() => import("../pages/SalesTrading"));
 const OutboundDelivery = lazy(() => import("../pages/OutboundDelivery"));
