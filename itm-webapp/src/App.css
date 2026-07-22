@@ -9,6 +9,28 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.appContent {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.appContent > .sideNav {
+  flex-shrink: 0;
+}
+
+.appContent > .mainContent {
+  flex: 1;
+  overflow: auto;
+}
+
 .app-shell {
   display: flex;
   flex-direction: column;
@@ -30,6 +52,7 @@ body {
   flex: 1;
   overflow: auto;
 }
+
 .mainContent {
 /* background-color: #1F2A44; */
 }

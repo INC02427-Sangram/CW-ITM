@@ -3,19 +3,41 @@
   display: flex;
   flex-direction: column;
   background: #1F2A44; /* Dark background */
-  width: 5rem;
+  width: 6rem;
   align-items: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 100;
   padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  gap: 0.25rem;
+  position: relative;
+}
+
+/* Hide scrollbar but keep functionality */
+.sideNav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sideNav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sideNav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.sideNav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
  
 .sideNavOptionTile {
   font-size: 12px;
   font-weight: 400;
   font-family: "Roboto", sans-serif;
-  min-height: 4.5rem;
-  width: 4.8rem;
+  min-height: 3.5rem;
+  width: 95%;
   text-align: center;
   vertical-align: middle;
   cursor: pointer;
@@ -48,7 +70,7 @@
 }
  
 .sideNavOptionTile p {
-  margin-top: 0.8rem;
+  margin-top: 0.5rem;
 }
  
  
@@ -94,8 +116,8 @@
   display: grid;
   align-items: center;
   justify-content: center;
-  width: 50px;          
-  height: 50px;  
+  width: 44px;          
+  height: 44px;  
   border-radius: 12px;  
   background: transparent;
   place-items: center;
@@ -114,8 +136,8 @@
  
 .sideNavOptionTile.selectedOption .iconBadge {
   background: #fff;  
-  width: 50px;        
-  height: 50px;
+  width: 44px;        
+  height: 44px;
 }
  
 .sideNavOptionTile .sideNavOptionIcon {
@@ -152,8 +174,8 @@
  
 .sideNavLabel {
   margin-top: 2px;
-  font-size: 12px;
-  line-height: 1.2;
+  font-size: 11px;
+  line-height: 1.1;
   text-align: center;
   font-weight: 500;          
   max-width: 100%;          
@@ -162,6 +184,7 @@
   -webkit-line-clamp: 2;    
   -webkit-box-orient: vertical;
   color: #fff;
+  word-wrap: break-word;
 }
  
 .sideNavOptionTile.selectedOption .sideNavLabel {

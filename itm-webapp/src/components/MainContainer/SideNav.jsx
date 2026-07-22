@@ -1,8 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 import "./SideNav.css";
 import { Box } from "@mui/material";
-import { getNavigationRoutes } from "../../config/routes.config";
+import { getSideNavItems } from "../../config/sidenav.config";
 
 // TODO: replace with actual theme from @mui/material useTheme
 const theme = {
@@ -20,11 +21,33 @@ export default function SideNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [currentModule, setCurrentModule] = useState("");
 
-  const navigationRoutes = getNavigationRoutes();
+  // Get navigation items from sideNavData
+  const navigationItems = getSideNavItems();
 
-  const onSelectModule = (path) => {
-    navigate(path);
+  // Track current module based on pathname
+  useEffect(() => {
+    const path = location.pathname;
+
+    // Find matching navigation item based on path
+    const matchedItem = navigationItems.find((item) => {
+      // Remove /* wildcard from path for matching
+      const cleanPath = item.path.replace("/*", "");
+      // Check for exact match or path starts with the nav item path
+      return path === cleanPath || path.startsWith(cleanPath + "/") || path.startsWith(cleanPath);
+    });
+
+    if (matchedItem) {
+      setCurrentModule(matchedItem.moduleName);
+    }
+  }, [location.pathname, navigationItems]);
+
+  const onSelectModule = (navItem) => {
+    setCurrentModule(navItem.moduleName);
+    // Remove /* wildcard from path for navigation
+    const cleanPath = navItem.path.replace("/*", "");
+    navigate(cleanPath);
   };
 
   const renderIcon = (IconComponent) => {
@@ -49,19 +72,18 @@ export default function SideNav() {
           }
         }
       >
-        {navigationRoutes.map((route) => {
-          const isSelected = location.pathname === route.path;
-          const translatedLabel = t(route.label);
+        {navigationItems.map((navItem) => {
+          const isSelected = currentModule === navItem.moduleName;
+          const translatedLabel = t(navItem.label);
 
           return (
             <Box
               className={`sideNavOptionTile ${isSelected ? "selectedOption" : ""}`}
-              key={route.id}
-              onClick={() => onSelectModule(route.path)}
+              key={navItem.id}
+              onClick={() => onSelectModule(navItem)}
               sx={{
                 // color: theme.palette.text.primary,
                 cursor: "pointer",
-
                 "&:not(.selectedOption):hover": {
                   background: "transparent !important",
                   "& .iconBadge": {
@@ -98,9 +120,7 @@ export default function SideNav() {
                 },
               }}
             >
-              <div className="iconBadge">
-                {renderIcon(route.icon)}
-              </div>
+              <div className="iconBadge">{renderIcon(navItem.icon)}</div>
               <p className="sideNavLabel">{translatedLabel}</p>
             </Box>
           );

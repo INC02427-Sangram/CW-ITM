@@ -1,43 +1,11 @@
-import { useEffect, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CircularProgress, Box } from "@mui/material";
 import "./App.css";
-import "./theme-light.css"
+import "./theme-light.css";
 import AppHeader from "./components/MainContainer/AppHeader";
 import SideNav from "./components/MainContainer/SideNav";
 import MainContainer from "./components/MainContainer/MainContainer";
-import { routesConfig } from "./config/routes.config";
-
-// Layout wrapper component
-function Layout() {
-  return (
-    <div className="app-shell">
-      <AppHeader />
-      <div className="app-body">
-        <SideNav />
-        <MainContainer />
-      </div>
-    </div>
-  );
-}
-
-// Loading fallback component
-function LoadingFallback() {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100%",
-        minHeight: "400px",
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
-}
 
 function App() {
   const { i18n } = useTranslation();
@@ -54,24 +22,13 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            {routesConfig.map((route) =>
-              route.isIndex ? (
-                <Route key={route.id} index element={<route.component />} />
-              ) : (
-                <Route
-                  key={route.id}
-                  path={route.path}
-                  element={<route.component />}
-                />
-              ),
-            )}
-          </Route>
-        </Routes>
-      </Suspense>
+      <div className="App">
+        <AppHeader />
+        <div className="appContent">
+          <SideNav />
+          <MainContainer />
+        </div>
+      </div>
     </BrowserRouter>
   );
 }

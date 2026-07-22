@@ -1,13 +1,14 @@
 import React, { useRef, useState } from "react";
-import { Box, Chip, IconButton, Tab, Tabs } from "@mui/material";
+import { IconButton, Chip } from "@mui/material";
+import { Box } from "@mui/material";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
 import ReusableTile from "../../components/Common/ReusableTile";
 import ReusableDataGrid from "../../components/Common/ReusableDataGrid";
 import { Add, ViewIcon } from "@cw/rds/icons";
-import CreateB2BTradingContractPage from "./CreateB2BTradingContract";
-import { useNavigate } from "react-router-dom";
 import { dummyTableData } from "../../dummydatas/dummydata";
+import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
 
 const STATUS_STYLES = {
   Active: { color: "#1e7d32", backgroundColor: "#e8f5e9" },
@@ -22,7 +23,9 @@ function ViewActionButton({ row }) {
     <IconButton
       size="small"
       onClick={() =>
-        navigate("/b2b-trading-contract-details", { state: { contractRow: row } })
+        navigate("/b2b-trading-contract-details", {
+          state: { contractRow: row },
+        })
       }
     >
       <ViewIcon />
@@ -87,18 +90,9 @@ const statCards = [
   { label: "Expiring Soon", value: "3", sub: "Next 30 days" },
   { label: "Expired Contracts", value: "1", sub: "Action Required" },
 ];
-const statCards2 = [
-  { label: "Open Orders", value: "18", sub: "6 due this week" },
-  { label: "Completed", value: "41", sub: "+8 this month" },
-  { label: "Posted", value: "12", sub: "+8 this week" },
-  { label: "Pending Delivery", value: "7", sub: "In Transit" },
-  { label: "Order Value (MTD)", value: "€1.1M", sub: "Month-to-date" },
-  { label: "Errors/Blocked", value: "2", sub: "Validation Required" },
-];
 
 export default function BackToBacktrading() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(0);
   const formRef = useRef(null);
 
   const [createContractOpen, setCreateContractOpen] = useState(false);
@@ -106,7 +100,7 @@ export default function BackToBacktrading() {
   const onClose = () => {
     setCreateContractOpen(false);
     setContractData(null);
-    formRef.current.reset();
+    if (formRef.current) formRef.current.reset();
   };
   const handleSubmit = () => {
     // Handle form submission logic here
@@ -116,7 +110,8 @@ export default function BackToBacktrading() {
     onClose();
   };
 
-  return (
+  // Dashboard view component
+  const DashboardView = () => (
     <Box
       className="outermost-container"
       sx={{
@@ -138,7 +133,7 @@ export default function BackToBacktrading() {
         <ReusableButtons
           type="button"
           icon={<Add />}
-          onClick={() => navigate("/create-b2b-trading-contract")}
+          onClick={() => navigate("create-contract")}
         >
           New B2B Contract
         </ReusableButtons>
@@ -179,5 +174,14 @@ export default function BackToBacktrading() {
         </Box>
       </Box>
     </Box>
+  );
+
+  return (
+    <Routes>
+      <Route index element={<DashboardView />} />
+      {b2bTradingRoutes.map((route) => (
+        <Route key={route.id} path={route.path} element={<route.component />} />
+      ))}
+    </Routes>
   );
 }
