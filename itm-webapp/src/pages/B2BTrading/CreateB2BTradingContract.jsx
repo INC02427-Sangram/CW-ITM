@@ -20,8 +20,55 @@ import CreateB2BTradingContract4 from "../../cw-generated-forms/CreateB2BTrading
 import AddMaterial from "./AddMaterial";
 import ReviewContractDetails from "./ReviewContractDetails";
 import { ArrowBack } from "@cw/rds/icons";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { dummyContractData } from "../../dummydatas/dummydata";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Converts a display-formatted date ("01/Jan/2024") back to ISO ("2024-01-01").
+// Values already in another format (e.g. ISO) are passed through untouched.
+const toISODate = (value) => {
+  if (!value) return "";
+  const match = /^(\d{2})\/([A-Za-z]{3})\/(\d{4})$/.exec(String(value).trim());
+  if (!match) return value;
+  const [, day, mon, year] = match;
+  const monthIndex = MONTHS.indexOf(mon);
+  if (monthIndex === -1) return value;
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${day}`;
+};
+
+// Maps the Contract Details page's shape back into the ITM_CTC_* fields the
+// generated step forms expect, so "Edit" can reopen this wizard pre-filled.
+// Fields the details page doesn't carry fall back to the default dummy header.
+const buildHeaderDetailsFromContractData = (contractData) => {
+  if (!contractData) return dummyContractData.headerDetails;
+  const [incoCode = "", ...incoLocParts] = String(contractData.incoterms || "").split(" - ");
+  const incoLoc = incoLocParts.join(" - ").trim();
+
+  return {
+    ...dummyContractData.headerDetails,
+    ITM_CTC_SUPPLIER: contractData.supplier || dummyContractData.headerDetails.ITM_CTC_SUPPLIER,
+    ITM_CTC_DOC_DATE: toISODate(contractData.documentDate) || dummyContractData.headerDetails.ITM_CTC_DOC_DATE,
+    ITM_CTC_VAL_FROM: toISODate(contractData.validityFrom) || dummyContractData.headerDetails.ITM_CTC_VAL_FROM,
+    ITM_CTC_VAL_TO: toISODate(contractData.validityTo) || dummyContractData.headerDetails.ITM_CTC_VAL_TO,
+    ITM_CTC_PERSON: contractData.personResponsible || dummyContractData.headerDetails.ITM_CTC_PERSON,
+    ITM_CTC_PURCH_ORG:
+      contractData.purchasingOrganization || dummyContractData.headerDetails.ITM_CTC_PURCH_ORG,
+    ITM_CTC_SALES_ORG:
+      contractData.purchasingOrganization || dummyContractData.headerDetails.ITM_CTC_SALES_ORG,
+    ITM_CTC_PURCH_CUR: contractData.currency || dummyContractData.headerDetails.ITM_CTC_PURCH_CUR,
+    ITM_CTC_SALES_CUR: contractData.currency || dummyContractData.headerDetails.ITM_CTC_SALES_CUR,
+    ITM_CTC_PURCH_INCO: incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO,
+    ITM_CTC_PURCH_INCO_LOC: incoLoc || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO_LOC,
+    ITM_CTC_SALES_INCO: incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_SALES_INCO,
+    ITM_CTC_SALES_INCO_LOC: incoLoc || dummyContractData.headerDetails.ITM_CTC_SALES_INCO_LOC,
+    ITM_CTC_TERMS_OF_PAY: contractData.paymentTerms || dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY,
+    ITM_CTC_TERMS_OF_PAY_SELL:
+      contractData.paymentTerms || dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY_SELL,
+    ITM_CTC_EXC_RATE_TYPE:
+      contractData.exchangeRateType || dummyContractData.headerDetails.ITM_CTC_EXC_RATE_TYPE,
+  };
+};
 
 const steps = [
   { label: "Header", number: 1 },
@@ -88,8 +135,18 @@ function StepNode({ step }) {
 }
 export default function CreateB2BTradingContractPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeStep, setActiveStep] = useState(0);
   const formRef = useRef(null);
+
+  const editContractData = location.state?.editContractData;
+  const isEditMode = Boolean(editContractData);
+  const initialHeaderDetails = isEditMode
+    ? buildHeaderDetailsFromContractData(editContractData)
+    : dummyContractData.headerDetails;
+  const initialContractItems = editContractData?.items?.length
+    ? editContractData.items
+    : dummyContractData.contractItems;
 
   const computedSteps = steps.map((step, index) => ({
     ...step,
@@ -119,7 +176,7 @@ export default function CreateB2BTradingContractPage() {
     Header: (formRef) => (
       <CreateB2BTradingContract
         ref={formRef}
-        initialData={dummyContractData.headerDetails}
+        initialData={initialHeaderDetails}
         showFooter={true}
         showHeader={false}
         columns={4}
@@ -128,7 +185,7 @@ export default function CreateB2BTradingContractPage() {
     "Parties & Validity": (formRef) => (
       <CreateB2BTradingContract2
         ref={formRef}
-        initialData={dummyContractData.headerDetails}
+        initialData={initialHeaderDetails}
         showFooter={false}
         showHeader={false}
         columns={4}
@@ -137,7 +194,7 @@ export default function CreateB2BTradingContractPage() {
     "Currency & Pricing": (formRef) => (
       <CreateB2BTradingContract3
         ref={formRef}
-        initialData={dummyContractData.headerDetails}
+        initialData={initialHeaderDetails}
         showFooter={false}
         showHeader={false}
         columns={4}
@@ -146,22 +203,19 @@ export default function CreateB2BTradingContractPage() {
     "Exchange Rate": (formRef) => (
       <CreateB2BTradingContract4
         ref={formRef}
-        initialData={dummyContractData.headerDetails}
+        initialData={initialHeaderDetails}
         showFooter={false}
         showHeader={false}
         columns={4}
       />
     ),
     Items: (formRef) => (
-      <AddMaterial
-        ref={formRef}
-        initialItems={dummyContractData.contractItems}
-      />
+      <AddMaterial ref={formRef} initialItems={initialContractItems} />
     ),
     "Review & Submit": (formRef) => (
       <ReviewContractDetails
-        headerDetails={dummyContractData.headerDetails}
-        contractItems={dummyContractData.contractItems}
+        headerDetails={initialHeaderDetails}
+        contractItems={initialContractItems}
       />
     ),
   };
@@ -195,7 +249,9 @@ export default function CreateB2BTradingContractPage() {
         <ReusableTypography
           sx={{ fontSize: 16, fontWeight: 700, color: "#2f3136" }}
         >
-          New Back to Back Trading Contract
+          {isEditMode
+            ? "Edit Back to Back Trading Contract"
+            : "New Back to Back Trading Contract"}
         </ReusableTypography>
         <ReusableTypography sx={{ fontSize: 16, color: "#7b818f" }}>
           -
@@ -203,10 +259,10 @@ export default function CreateB2BTradingContractPage() {
         <ReusableTypography
           sx={{ fontSize: 16, color: "#6c7484", fontWeight: 500 }}
         >
-          BTBC-882-2024
+          {editContractData?.contractNumber || "BTBC-882-2024"}
         </ReusableTypography>
         <Chip
-          label="Draft"
+          label={isEditMode ? editContractData.status : "Draft"}
           size="small"
           sx={{
             ml: 0.5,
