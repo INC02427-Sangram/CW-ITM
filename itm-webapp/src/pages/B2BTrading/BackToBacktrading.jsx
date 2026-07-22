@@ -62,64 +62,39 @@ export default function BackToBacktrading() {
           icon={<Add />}
           onClick={() => navigate("/create-b2b-trading-contract")}
         >
-          {activeTab === 0 ? "New B2B Contract" : "New B2B Order"}
+          New B2B Contract
         </ReusableButtons>
       </Box>
 
-      <Tabs
-        value={activeTab}
-        onChange={(_, val) => setActiveTab(val)}
-        sx={{ "& .MuiTab-root": { textTransform: "none " } }}
-      >
-        <Tab label="Back to Back Trading Contract" />
-        <Tab label="Back to Back Trading Order" />
-      </Tabs>
-
-      {activeTab === 0 && (
-        <Box display="flex" gap={2} flexDirection={"column"}>
-          <Box
-            display="flex"
-            gap={2}
-            mt={2}
-            flexDirection={"column"}
-            flexWrap={"wrap"}
-          >
-            <Box display="flex" gap={2} flexWrap={"wrap"}>
-              {statCards.map((card) => (
-                <Box key={card.label} flex={1} minWidth={0} display="flex">
-                  <ReusableTile
-                    title={card.label}
-                    subtitle={card.value}
-                    description={card.sub}
-                  />
-                </Box>
-              ))}
-            </Box>
-            <Box>
-              <B2BContractDashboardTable
-                initialData={dummyTableData}
-                showFooter={false}
-                showHeader={false}
-                view="list"
-              />
-            </Box>
+      <Box display="flex" gap={2} flexDirection={"column"}>
+        <Box
+          display="flex"
+          gap={2}
+          mt={2}
+          flexDirection={"column"}
+          flexWrap={"wrap"}
+        >
+          <Box display="flex" gap={2} flexWrap={"wrap"}>
+            {statCards.map((card) => (
+              <Box key={card.label} flex={1} minWidth={0} display="flex">
+                <ReusableTile
+                  title={card.label}
+                  subtitle={card.value}
+                  description={card.sub}
+                />
+              </Box>
+            ))}
+          </Box>
+          <Box>
+            <B2BContractDashboardTable
+              initialData={dummyTableData}
+              showFooter={false}
+              showHeader={false}
+              view="list"
+            />
           </Box>
         </Box>
-      )}
-
-      {activeTab === 1 && (
-        <Box display="flex" gap={2} mt={2}>
-          {statCards2.map((card) => (
-            <Box key={card.label} flex={1} minWidth={0} display="flex">
-              <ReusableTile
-                title={card.label}
-                subtitle={card.value}
-                description={card.sub}
-              />
-            </Box>
-          ))}
-        </Box>
-      )}
+      </Box>
     </div>
   );
 }
