@@ -92,6 +92,22 @@ export const routesConfig = [
     showInNav: true,
     index: 6,
   },
+  {
+    id:"create-b2b-trading-contract",
+    path:"/create-b2b-trading-contract",
+    label:"Create B2B Trading Contract",
+    component: lazy(() => import("../pages/B2BTrading/CreateB2BTradingContract")),
+    showInNav:false,
+    index: 7,
+  },
+  {
+    id:"b2b-trading-contract-details",
+    path:"/b2b-trading-contract-details",
+    label:"B2B Trading Contract Details",
+    component: lazy(() => import("../pages/B2BTrading/ContractDetails")),
+    showInNav:false,
+    index: 8,
+  }
 ];
 
 // Helper function to get route by id

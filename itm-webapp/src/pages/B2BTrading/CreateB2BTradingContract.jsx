@@ -7,6 +7,7 @@ import {
   IconButton,
   Typography,
   Divider,
+  BottomNavigation,
 } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -16,12 +17,19 @@ import CreateB2BTradingContract from "../../cw-generated-forms/CreateB2BTradingC
 import CreateB2BTradingContract2 from "../../cw-generated-forms/CreateB2BTradingContract2";
 import CreateB2BTradingContract3 from "../../cw-generated-forms/CreateB2BTradingContract3";
 import CreateB2BTradingContract4 from "../../cw-generated-forms/CreateB2BTradingContract4";
+import AddMaterial from "./AddMaterial";
+import ReviewContractDetails from "./ReviewContractDetails";
+import { ArrowBack } from "@cw/rds/icons";
+import { useNavigate } from "react-router-dom";
+import { dummyContractData } from "../../dummydatas/dummydata";
 
 const steps = [
   { label: "Header", number: 1 },
   { label: "Parties & Validity", number: 2 },
   { label: "Currency & Pricing", number: 3 },
   { label: "Exchange Rate", number: 4 },
+  { label: "Items", number: 5 },
+  { label: "Review & Submit", number: 6 },
 ];
 
 const formPlaceholders = {
@@ -44,6 +52,10 @@ const formPlaceholders = {
     title: "Exchange Rate Form Section",
     description:
       "Define exchange rate source, type, and effective date details.",
+  },
+  Items: {
+    title: "Items Form Section",
+    description: "Specify the material items, quantities, and related details.",
   },
 };
 
@@ -74,19 +86,10 @@ function StepNode({ step }) {
     </Box>
   );
 }
-export default function CreateB2BTradingContractPage({
-  open,
-  onClose,
-  contractData,
-  formRef,
-  handleSubmit,
-}) {
+export default function CreateB2BTradingContractPage() {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
-  useEffect(() => {
-    if (open) {
-      setActiveStep(0);
-    }
-  }, [open]);
+  const formRef = useRef(null);
 
   const computedSteps = steps.map((step, index) => ({
     ...step,
@@ -116,80 +119,102 @@ export default function CreateB2BTradingContractPage({
     Header: (formRef) => (
       <CreateB2BTradingContract
         ref={formRef}
+        initialData={dummyContractData.headerDetails}
         showFooter={true}
         showHeader={false}
+        columns={4}
       />
     ),
     "Parties & Validity": (formRef) => (
       <CreateB2BTradingContract2
         ref={formRef}
+        initialData={dummyContractData.headerDetails}
         showFooter={false}
         showHeader={false}
+        columns={4}
       />
     ),
     "Currency & Pricing": (formRef) => (
       <CreateB2BTradingContract3
         ref={formRef}
+        initialData={dummyContractData.headerDetails}
         showFooter={false}
         showHeader={false}
+        columns={4}
       />
     ),
     "Exchange Rate": (formRef) => (
       <CreateB2BTradingContract4
         ref={formRef}
+        initialData={dummyContractData.headerDetails}
         showFooter={false}
         showHeader={false}
+        columns={4}
+      />
+    ),
+    Items: (formRef) => (
+      <AddMaterial
+        ref={formRef}
+        initialItems={dummyContractData.contractItems}
+      />
+    ),
+    "Review & Submit": (formRef) => (
+      <ReviewContractDetails
+        headerDetails={dummyContractData.headerDetails}
+        contractItems={dummyContractData.contractItems}
       />
     ),
   };
+  const handleSubmit = () => {
+    const data = formRef.current.getValues();
+    console.log("Form submitted", data);
+  };
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth={"md"}>
+    <Box className="outermost-container">
       <Box
         sx={{
-          px: { xs: 2, sm: 3 },
-          py: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: "1px solid #e3e7ee",
+          justifyContent: "flex-start",
+          mb: 1,
+          gap: 2,
+          py: 1,
         }}
       >
-        <Box
+        <IconButton
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            flexWrap: "wrap",
+            p: 0,
+            "&:hover": { backgroundColor: "transparent" },
+          }}
+          onClick={() => {
+            navigate(-1); // Navigate back to the previous page
           }}
         >
-          <InfoOutlinedIcon sx={{ color: "#7a8aa0", fontSize: 22 }} />
-          <ReusableTypography
-            sx={{ fontSize: 16, fontWeight: 700, color: "#2f3136" }}
-          >
-            New Back to Back Trading Contract
-          </ReusableTypography>
-          <ReusableTypography sx={{ fontSize: 16, color: "#7b818f" }}>
-            -
-          </ReusableTypography>
-          <ReusableTypography
-            sx={{ fontSize: 16, color: "#6c7484", fontWeight: 500 }}
-          >
-            BTBC-882-2024
-          </ReusableTypography>
-          <Chip
-            label="Draft"
-            size="small"
-            sx={{
-              ml: 0.5,
-              fontWeight: 600,
-              color: "#d47d24",
-              backgroundColor: "#fbefdf",
-            }}
-          />
-        </Box>
-        <IconButton size="small" aria-label="close" onClick={onClose}>
-          <CloseIcon sx={{ color: "#555b67" }} />
+          <ArrowBack sx={{ color: "#7a8aa0", fontSize: 22 }} />
         </IconButton>
+        <ReusableTypography
+          sx={{ fontSize: 16, fontWeight: 700, color: "#2f3136" }}
+        >
+          New Back to Back Trading Contract
+        </ReusableTypography>
+        <ReusableTypography sx={{ fontSize: 16, color: "#7b818f" }}>
+          -
+        </ReusableTypography>
+        <ReusableTypography
+          sx={{ fontSize: 16, color: "#6c7484", fontWeight: 500 }}
+        >
+          BTBC-882-2024
+        </ReusableTypography>
+        <Chip
+          label="Draft"
+          size="small"
+          sx={{
+            ml: 0.5,
+            fontWeight: 600,
+            color: "#d47d24",
+            backgroundColor: "#fbefdf",
+          }}
+        />
       </Box>
 
       <Box
@@ -197,6 +222,7 @@ export default function CreateB2BTradingContractPage({
           px: { xs: 2, sm: 3 },
           py: 2,
           borderBottom: "1px solid #e3e7ee",
+          flexShrink: 0,
         }}
       >
         <Box
@@ -204,7 +230,7 @@ export default function CreateB2BTradingContractPage({
             display: "flex",
             alignItems: "center",
             gap: 1.5,
-            overflowX: "auto",
+            width: "100%",
           }}
         >
           {computedSteps.map((step, index) => (
@@ -247,7 +273,15 @@ export default function CreateB2BTradingContractPage({
         </Box>
       </Box>
 
-      <Box sx={{ px: { xs: 2, sm: 3 }, py: 2.5 }}>
+      <Box
+        sx={{
+          px: { xs: 2, sm: 3 },
+          py: 2.5,
+          flex: 1,
+          overflowY: "auto",
+          minHeight: 0,
+        }}
+      >
         <Box
           sx={{
             minHeight: 360,
@@ -260,57 +294,58 @@ export default function CreateB2BTradingContractPage({
           {stepContents[activeStepLabel](formRef)}
         </Box>
       </Box>
-      <Box
+      <BottomNavigation
         sx={{
+          flexShrink: 0,
+          width: "100%",
+          height: "auto",
           px: { xs: 2, sm: 3 },
-          py: 2,
+          py: 1,
           display: "flex",
           justifyContent: "flex-end",
-          gap: 1.5,
+          backgroundColor: "#fff",
           borderTop: "1px solid #e3e7ee",
         }}
       >
-        <Button
-          variant="text"
-          onClick={onClose}
+        <Box
           sx={{
-            color: "#23409a",
-            textTransform: "none",
-            fontWeight: 600,
-            px: 2.5,
+            display: "flex",
+            gap: 1.5,
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
           }}
         >
-          Cancel
-        </Button>
-
-        {activeStep > 0 && (
+          {activeStep > 0 && (
+            <Button
+              variant="outlined"
+              onClick={handleBack}
+              sx={{
+                textTransform: "none",
+                color: "#23409a",
+                fontWeight: 600,
+                px: 2.5,
+              }}
+            >
+              Back
+            </Button>
+          )}
           <Button
-            variant="outlined"
-            onClick={handleBack}
+            variant="contained"
+            onClick={
+              activeStep === steps.length - 1 ? handleSubmit : handleNext
+            }
             sx={{
               textTransform: "none",
-              color: "#23409a",
               fontWeight: 600,
-              px: 2.5,
+              backgroundColor: "#123db8",
+              px: 3,
+              "&:hover": { backgroundColor: "#0f35a1" },
             }}
           >
-            Back
+            {activeStep === steps.length - 1 ? "Submit" : "Next"}
           </Button>
-        )}
-        <Button
-          variant="contained"
-          onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            backgroundColor: "#123db8",
-            px: 3,
-            "&:hover": { backgroundColor: "#0f35a1" },
-          }}
-        >
-          {activeStep === steps.length - 1 ? "Submit" : "Next"}
-        </Button>
-      </Box>
-    </Dialog>
+        </Box>
+      </BottomNavigation>
+    </Box>
   );
 }

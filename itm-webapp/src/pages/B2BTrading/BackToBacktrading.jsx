@@ -6,61 +6,8 @@ import ReusableTile from "../../components/Common/ReusableTile";
 import { Add } from "@cw/rds/icons";
 import CreateB2BTradingContractPage from "./CreateB2BTradingContract";
 import B2BContractDashboardTable from "../../cw-generated-forms/B2BContractDashboardTable";
-
-const dummyTableData = [
-  {
-    ITM_CTC_ID: "BTBC-882-2024",
-    supplier: "Chemical Supplies Inc.",
-    soldToParty: "Constellation Energy",
-    material: "Glycol - 2114",
-    validityPeriod: "01/Jan/2024 to 31/Dec/2024",
-    buyPrice: "$80/MT",
-    sellPrice: "€90/MT",
-    currency: "EUR",
-    targetQuantity: "10,000",
-    unit: "MT",
-    status: "Active",
-  },
-  {
-    ITM_CTC_ID: "BTBC-441-2023",
-    supplier: "TechParts Manufacturing",
-    soldToParty: "Pacific Fuels Ltd.",
-    material: "Lens - XJ720",
-    validityPeriod: "01/Jan/2024 to 31/Dec/2024",
-    buyPrice: "$80/MT",
-    sellPrice: "€90/MT",
-    currency: "EUR",
-    targetQuantity: "12,000",
-    unit: "MT",
-    status: "Pending Approval",
-  },
-  {
-    ITM_CTC_ID: "BTBC-775-2022",
-    supplier: "Tital Steel Co.",
-    soldToParty: "Orion Metals Inc.",
-    material: "Steel",
-    validityPeriod: "01/Jan/2024 to 31/Dec/2024",
-    buyPrice: "$80/MT",
-    sellPrice: "€90/MT",
-    currency: "EUR",
-    targetQuantity: "80,000",
-    unit: "MT",
-    status: "Expired",
-  },
-  {
-    ITM_CTC_ID: "BTBC-441-2023",
-    supplier: "TechParts Manufacturing",
-    soldToParty: "Baltic Trade Co.",
-    material: "Camera Cabinet",
-    validityPeriod: "01/Jan/2024 to 31/Dec/2024",
-    buyPrice: "$80/MT",
-    sellPrice: "€90/MT",
-    currency: "EUR",
-    targetQuantity: "53,000",
-    unit: "MT",
-    status: "Expiring Soon",
-  },
-];
+import { useNavigate } from "react-router-dom";
+import { dummyTableData } from "../../dummydatas/dummydata";
 
 const statCards = [
   { label: "Contract Value", value: "€1.95M", sub: "up by 12% vs Last Year" },
@@ -80,6 +27,7 @@ const statCards2 = [
 ];
 
 export default function BackToBacktrading() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const formRef = useRef(null);
 
@@ -100,13 +48,6 @@ export default function BackToBacktrading() {
 
   return (
     <div className="outermost-container">
-      <CreateB2BTradingContractPage
-        open={createContractOpen}
-        onClose={onClose}
-        contractData={contractData}
-        formRef={formRef}
-        handleSubmit={handleSubmit}
-      />
       <Box
         display="flex"
         justifyContent="space-between"
@@ -119,7 +60,7 @@ export default function BackToBacktrading() {
         <ReusableButtons
           type="button"
           icon={<Add />}
-          onClick={() => setCreateContractOpen(true)}
+          onClick={() => navigate("/create-b2b-trading-contract")}
         >
           {activeTab === 0 ? "New B2B Contract" : "New B2B Order"}
         </ReusableButtons>
@@ -135,23 +76,25 @@ export default function BackToBacktrading() {
       </Tabs>
 
       {activeTab === 0 && (
-        <Box display="flex" gap={2} mt={2} flexDirection={"column"}>
+        <Box display="flex" gap={2} flexDirection={"column"}>
           <Box
             display="flex"
             gap={2}
             mt={2}
-            flexDirection={"row"}
+            flexDirection={"column"}
             flexWrap={"wrap"}
           >
-            {statCards.map((card) => (
-              <Box key={card.label} flex={1} minWidth={0} display="flex">
-                <ReusableTile
-                  title={card.label}
-                  subtitle={card.value}
-                  description={card.sub}
-                />
-              </Box>
-            ))}
+            <Box display="flex" gap={2} flexWrap={"wrap"}>
+              {statCards.map((card) => (
+                <Box key={card.label} flex={1} minWidth={0} display="flex">
+                  <ReusableTile
+                    title={card.label}
+                    subtitle={card.value}
+                    description={card.sub}
+                  />
+                </Box>
+              ))}
+            </Box>
             <Box>
               <B2BContractDashboardTable
                 initialData={dummyTableData}
