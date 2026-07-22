@@ -1,5 +1,8 @@
 import React from "react";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Table,
   TableBody,
@@ -9,6 +12,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 const MONTHS = [
   "Jan",
@@ -122,6 +126,15 @@ const sectionCardSx = {
   mb: 2.5,
 };
 
+const accordionSx = {
+  border: "1px solid #d9dee7",
+  borderRadius: "6px",
+  mb: 2.5,
+  boxShadow: "none",
+  "&:before": { display: "none" },
+  "&.Mui-expanded": { margin: 0, marginBottom: "20px" },
+};
+
 export default function ReviewContractDetails({
   headerDetails = {},
   contractItems = [],
@@ -137,41 +150,50 @@ export default function ReviewContractDetails({
   return (
     <Box>
       {REVIEW_SECTIONS.map((section) => (
-        <Box key={section.title} sx={sectionCardSx}>
-          <Typography
-            sx={{ fontSize: 14, fontWeight: 700, color: "#2f3136", mb: 2 }}
-          >
-            {section.title}
-          </Typography>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" },
-              rowGap: 2,
-              columnGap: 3,
-            }}
-          >
-            {section.fields.map((field) => (
-              <Box key={field.key}>
-                <Typography sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}>
-                  {field.label}:
-                </Typography>
-                <Typography
-                  sx={{ fontSize: 13, fontWeight: 600, color: "#2f3136" }}
+        <Accordion key={section.title} defaultExpanded disableGutters sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{
+            backgroundColor: "#f2f6ff",
+          }}>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}>
+              {section.title}
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" },
+                rowGap: 2,
+                columnGap: 3,
+              }}
+            >
+              {section.fields.map((field) => (
+                <Box
+                  key={field.key}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                  }}
                 >
-                  {displayValues[field.key] || "-"}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+                  <Typography sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}>
+                    {field.label}:
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#2f3136" }}>
+                    {displayValues[field.key] || "-"}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </AccordionDetails>
+        </Accordion>
       ))}
 
       <Box sx={sectionCardSx}>
         <Typography
-          sx={{ fontSize: 14, fontWeight: 700, color: "#2f3136", mb: 2 }}
+          sx={{ fontSize: 14, fontWeight: 700, color: "#2f3136", mb: 2, textAlign: "left" }}
         >
-          Items (Release from Contract)
+          Contract Items
         </Typography>
         <TableContainer
           sx={{ border: "1px solid #d9dee7", borderRadius: "6px" }}
