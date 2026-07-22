@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { Box, Tab, Tabs } from "@mui/material";
+import React, { useRef, useState, Suspense } from "react";
+import { Box, Tab, Tabs, CircularProgress } from "@mui/material";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
@@ -8,6 +8,21 @@ import { Add } from "@cw/rds/icons";
 import B2BContractDashboardTable from "../../cw-generated-forms/B2BContractDashboardTable";
 import { dummyTableData } from "../../dummydatas/dummydata";
 import { b2bTradingRoutes, getB2BRouteById } from "./b2b.routes.config";
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <Box
+    sx={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100%",
+      minHeight: "400px",
+    }}
+  >
+    <CircularProgress />
+  </Box>
+);
 
 const statCards = [
   { label: "Contract Value", value: "€1.95M", sub: "up by 12% vs Last Year" },
@@ -66,20 +81,10 @@ export default function BackToBacktrading() {
             icon={<Add />}
             onClick={() => navigate(`/back-to-back-trading/${createContractRoute.path}`)}
           >
-            {activeTab === 0 ? "New B2B Contract" : "New B2B Order"}
+            New B2B Contract
           </ReusableButtons>
         </Box>
 
-      <Tabs
-        value={activeTab}
-        onChange={(_, val) => setActiveTab(val)}
-        sx={{ "& .MuiTab-root": { textTransform: "none " } }}
-      >
-        <Tab label="Back to Back Trading Contract" />
-        <Tab label="Back to Back Trading Order" />
-      </Tabs>
-
-      {activeTab === 0 && (
         <Box display="flex" gap={2} flexDirection={"column"}>
           <Box
             display="flex"
@@ -109,35 +114,22 @@ export default function BackToBacktrading() {
             </Box>
           </Box>
         </Box>
-      )}
-
-      {activeTab === 1 && (
-        <Box display="flex" gap={2} mt={2}>
-          {statCards2.map((card) => (
-            <Box key={card.label} flex={1} minWidth={0} display="flex">
-              <ReusableTile
-                title={card.label}
-                subtitle={card.value}
-                description={card.sub}
-              />
-            </Box>
-          ))}
-        </Box>
-      )}
       </div>
     );
   };
 
   return (
-    <Routes>
-      <Route index element={<DashboardView />} />
-      {b2bTradingRoutes.map((route) => (
-        <Route
-          key={route.id}
-          path={route.path}
-          element={<route.component />}
-        />
-      ))}
-    </Routes>
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route index element={<DashboardView />} />
+        {b2bTradingRoutes.map((route) => (
+          <Route
+            key={route.id}
+            path={route.path}
+            element={<route.component />}
+          />
+        ))}
+      </Routes>
+    </Suspense>
   );
 }
