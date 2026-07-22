@@ -1,13 +1,13 @@
 import React, { useRef, useState } from "react";
 import { Box, Tab, Tabs } from "@mui/material";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
 import ReusableTile from "../../components/Common/ReusableTile";
 import { Add } from "@cw/rds/icons";
-import CreateB2BTradingContractPage from "./CreateB2BTradingContract";
 import B2BContractDashboardTable from "../../cw-generated-forms/B2BContractDashboardTable";
-import { useNavigate } from "react-router-dom";
 import { dummyTableData } from "../../dummydatas/dummydata";
+import { b2bTradingRoutes, getB2BRouteById } from "./b2b.routes.config";
 
 const statCards = [
   { label: "Contract Value", value: "€1.95M", sub: "up by 12% vs Last Year" },
@@ -46,25 +46,29 @@ export default function BackToBacktrading() {
     onClose();
   };
 
-  return (
-    <div className="outermost-container">
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={1}
-      >
-        <ReusableTypography variant="h6" sx={{ fontWeight: 600 }}>
-          Back to Back Trading Dashboard
-        </ReusableTypography>
-        <ReusableButtons
-          type="button"
-          icon={<Add />}
-          onClick={() => navigate("/create-b2b-trading-contract")}
+  // Dashboard view component
+  const DashboardView = () => {
+    const createContractRoute = getB2BRouteById("create-contract");
+    
+    return (
+      <div className="outermost-container">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={1}
         >
-          {activeTab === 0 ? "New B2B Contract" : "New B2B Order"}
-        </ReusableButtons>
-      </Box>
+          <ReusableTypography variant="h6" sx={{ fontWeight: 600 }}>
+            Back to Back Trading Dashboard
+          </ReusableTypography>
+          <ReusableButtons
+            type="button"
+            icon={<Add />}
+            onClick={() => navigate(`/back-to-back-trading/${createContractRoute.path}`)}
+          >
+            {activeTab === 0 ? "New B2B Contract" : "New B2B Order"}
+          </ReusableButtons>
+        </Box>
 
       <Tabs
         value={activeTab}
@@ -120,6 +124,20 @@ export default function BackToBacktrading() {
           ))}
         </Box>
       )}
-    </div>
+      </div>
+    );
+  };
+
+  return (
+    <Routes>
+      <Route index element={<DashboardView />} />
+      {b2bTradingRoutes.map((route) => (
+        <Route
+          key={route.id}
+          path={route.path}
+          element={<route.component />}
+        />
+      ))}
+    </Routes>
   );
 }
