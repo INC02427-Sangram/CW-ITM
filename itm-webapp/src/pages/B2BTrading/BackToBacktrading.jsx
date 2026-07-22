@@ -1,5 +1,5 @@
-import React, { useRef, useState, Suspense } from "react";
-import { Box, Tab, Tabs, CircularProgress } from "@mui/material";
+import React, { useRef, useState } from "react";
+import { Box, Tab, Tabs } from "@mui/material";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
@@ -8,21 +8,6 @@ import { Add } from "@cw/rds/icons";
 import B2BContractDashboardTable from "../../cw-generated-forms/B2BContractDashboardTable";
 import { dummyTableData } from "../../dummydatas/dummydata";
 import { b2bTradingRoutes, getB2BRouteById } from "./b2b.routes.config";
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <Box
-    sx={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "100%",
-      minHeight: "400px",
-    }}
-  >
-    <CircularProgress />
-  </Box>
-);
 
 const statCards = [
   { label: "Contract Value", value: "€1.95M", sub: "up by 12% vs Last Year" },
@@ -61,7 +46,7 @@ export default function BackToBacktrading() {
     onClose();
   };
 
-  // Dashboard view component
+  // Dashboard view - exact same as user provided
   const DashboardView = () => {
     const createContractRoute = getB2BRouteById("create-contract");
     
@@ -119,17 +104,15 @@ export default function BackToBacktrading() {
   };
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route index element={<DashboardView />} />
-        {b2bTradingRoutes.map((route) => (
-          <Route
-            key={route.id}
-            path={route.path}
-            element={<route.component />}
-          />
-        ))}
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route index element={<DashboardView />} />
+      {b2bTradingRoutes.map((route) => (
+        <Route
+          key={route.id}
+          path={route.path}
+          element={<route.component />}
+        />
+      ))}
+    </Routes>
   );
 }

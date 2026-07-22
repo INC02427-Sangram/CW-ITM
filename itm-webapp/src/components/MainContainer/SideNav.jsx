@@ -32,9 +32,8 @@ export default function SideNav() {
 
     // Find matching navigation item based on path
     const matchedItem = navigationItems.find((item) => {
-      const cleanPath = item.path.replace("/*", "");
       // Check for exact match or path starts with the nav item path
-      return path === cleanPath || path.startsWith(cleanPath);
+      return path === item.path || path.startsWith(item.path);
     });
 
     if (matchedItem) {
@@ -44,9 +43,7 @@ export default function SideNav() {
 
   const onSelectModule = (navItem) => {
     setCurrentModule(navItem.moduleName);
-    // Remove /* from path for navigation
-    const cleanPath = navItem.path.replace("/*", "");
-    navigate(cleanPath);
+    navigate(navItem.path);
   };
 
   const renderIcon = (IconComponent) => {

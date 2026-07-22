@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
 import { CircularProgress, Box } from "@mui/material";
-import { sideNavConfig } from "../../config/sidenav.config";
+import { getAllRoutes } from "../../config/sidenav.config";
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -19,16 +19,18 @@ const LoadingFallback = () => (
 );
 
 const MainContainer = () => {
+  const allRoutes = getAllRoutes();
+
   return (
     <div className="mainContent">
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {sideNavConfig.map((navItem) => (
+          {allRoutes.map((route) => (
             <Route
-              key={navItem.id}
-              path={navItem.path}
-              element={<navItem.component />}
+              key={route.id}
+              path={route.path}
+              element={<route.component />}
             />
           ))}
         </Routes>

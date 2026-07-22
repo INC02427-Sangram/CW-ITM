@@ -9,7 +9,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 
-// Lazy load pages for routing in MainContainer
+// Lazy load pages for better performance
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const BackToBackTrading = lazy(() => import("../pages/B2BTrading/BackToBacktrading"));
 const PurchaseTrading = lazy(() => import("../pages/PurchaseTrading"));
@@ -19,10 +19,12 @@ const SalesOrders = lazy(() => import("../pages/SalesOrders"));
 const OutboundDelivery = lazy(() => import("../pages/OutboundDelivery"));
 const Invoices = lazy(() => import("../pages/Invoices"));
 const AdminConsole = lazy(() => import("../pages/AdminConsole"));
+const CreateB2BTradingContract = lazy(() => import("../pages/B2BTrading/CreateB2BTradingContract"));
+const ContractDetails = lazy(() => import("../pages/B2BTrading/ContractDetails"));
 
 /**
  * Side navigation configuration for ITM application
- * Defines sidebar navigation structure with routing components for MainContainer
+ * Defines the sidebar navigation structure with routing information
  */
 
 // Module names used for routing and state management
@@ -46,7 +48,7 @@ export const sideNavModuleNames = [
  * - label: Display label (translation key)
  * - moduleName: Module name for state management
  * - icon: Icon component
- * - component: Page component (for MainContainer routing)
+ * - component: Page component
  * - showInNav: Whether to show in navigation menu
  * - index: Order in navigation
  */
@@ -63,7 +65,7 @@ export const sideNavConfig = [
   },
   {
     id: "back-to-back-trading",
-    path: "/back-to-back-trading/*",
+    path: "/back-to-back-trading",
     label: "Back-to-Back",
     moduleName: "Back-to-Back",
     icon: PublishedWithChangesIcon,
@@ -133,7 +135,7 @@ export const sideNavConfig = [
   },
   {
     id: "admin-console",
-    path: "/admin-console/*",
+    path: "/admin-console",
     label: "Admin Console",
     moduleName: "Admin Console",
     icon: SettingsIcon,
@@ -142,6 +144,32 @@ export const sideNavConfig = [
     index: 8,
   },
 ];
+
+/**
+ * Additional routes that don't appear in navigation
+ * These are detail pages, forms, and nested routes
+ */
+export const additionalRoutes = [
+  {
+    id: "create-b2b-trading-contract",
+    path: "/create-b2b-trading-contract",
+    label: "Create B2B Trading Contract",
+    component: CreateB2BTradingContract,
+    showInNav: false,
+  },
+  {
+    id: "b2b-trading-contract-details",
+    path: "/b2b-trading-contract-details",
+    label: "B2B Trading Contract Details",
+    component: ContractDetails,
+    showInNav: false,
+  },
+];
+
+// Get all routes (navigation + additional routes)
+export const getAllRoutes = () => {
+  return [...sideNavConfig, ...additionalRoutes];
+};
 
 // Helper function to get navigation item by id
 export const getNavItemById = (id) => {
