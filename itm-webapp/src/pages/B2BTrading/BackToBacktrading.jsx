@@ -23,7 +23,7 @@ function ViewActionButton({ row }) {
     <IconButton
       size="small"
       onClick={() =>
-        navigate("/b2b-trading-contract-details", {
+        navigate("contract-details", {
           state: { contractRow: row },
         })
       }

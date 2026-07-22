@@ -173,7 +173,7 @@ export default function ContractDetails({ contractData }) {
           variant="outlined"
           startIcon={<EditIcon sx={{ fontSize: 16 }} />}
           onClick={() =>
-            navigate("/create-b2b-trading-contract", {
+            navigate("../create-contract", {
               state: { editContractData: resolvedContractData },
             })
           }
