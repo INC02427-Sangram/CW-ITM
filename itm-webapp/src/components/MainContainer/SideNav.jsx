@@ -110,9 +110,9 @@ export default function SideNav() {
   };
 
   const renderIcon = (IconComponent) => {
-    if (!IconComponent) return <span className="icon"></span>;
+    if (!IconComponent) return <span className="sideNavOptionIcon"></span>;
     return (
-      <span className="icon">
+      <span className="sideNavOptionIcon">
         <IconComponent />
       </span>
     );
