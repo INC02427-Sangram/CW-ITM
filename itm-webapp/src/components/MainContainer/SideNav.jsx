@@ -27,7 +27,7 @@ export default function SideNav() {
 
   // states for managing navbar overflow
   const containerRef = useRef(null);
-  const [visibleCount, setVisibleCount] = useState(9); // Number of items to show before overflow
+  const [visibleCount, setVisibleCount] = useState(8); // Number of items to show before overflow
   const [hasOverflow, setHasOverflow] = useState(false);
 
   // Get navigation items from sideNavData
@@ -247,7 +247,7 @@ export default function SideNav() {
         onClick={() => setDrawerOpen(false)}
         sx={{
           position: "fixed",
-          top: 0,
+          top: "3.75rem",
           left: "6rem",
           right: 0,
           bottom: 0,
@@ -261,7 +261,7 @@ export default function SideNav() {
       <Box
         sx={{
           position: "fixed",
-          top: 0,
+          top: "3.75rem",
           left: "6rem",
           bottom: 0,
           width: "15%",
@@ -286,22 +286,6 @@ export default function SideNav() {
             boxSizing: "border-box",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-            }}
-          >
-            <IconButton
-              onClick={() => setDrawerOpen(false)}
-              sx={{ color: theme.palette.text.primary, marginLeft: "auto" }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
           <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {overflowItems.map((navItem) => renderNavItem(navItem, true))}
           </Box>
