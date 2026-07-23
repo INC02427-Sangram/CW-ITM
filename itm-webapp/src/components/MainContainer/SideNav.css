@@ -49,8 +49,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: background 0.3s ease,
-  /* transition: background 0.3s ease, color 0.3s ease; Smooth transition for background and color */
+  transition: background 0.3s ease, color 0.3s ease;
 }
  
 /* .sideNavOptionTile:hover {
@@ -116,13 +115,14 @@
   display: grid;
   align-items: center;
   justify-content: center;
-  width: 44px;          
-  height: 44px;  
-  border-radius: 12px;  
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: transparent;
   place-items: center;
-  line-height: 0;    
-  margin-bottom: 0.2rem;  
+  line-height: 0;
+  margin-bottom: 0.2rem;
+  transition: background 0.3s ease;
 }
  
 .iconBadge > svg,
@@ -205,10 +205,8 @@
   background: transparent;
 }
  
-.sideNavOptionTile:hover .iconBadge {
-  background: #EDEBFF;
-}
- 
+/* Badge background on hover is now provided by the sliding highlight bar (see .sideNavHoverHighlight in SideNav.jsx) */
+
 .sideNavOptionTile:hover .sideNavOptionIcon {
   color: #3730c7;
   fill: currentColor;

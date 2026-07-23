@@ -1,11 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import "./SideNav.css";
 import { Box, IconButton, Typography } from "@mui/material";
 import { getSideNavItems } from "../../config/sidenav.config";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import CloseIcon from "@mui/icons-material/Close";
+import { MoreApps } from "@cw/rds/icons";
 // TODO: replace with actual theme from @mui/material useTheme
 const theme = {
   palette: {
@@ -18,12 +19,49 @@ const theme = {
   },
 };
 
+// Tracks the position/size of a hovered nav item's icon badge so a single
+// indicator can slide smoothly between items instead of each badge
+// independently snapping its own highlight on and off
+function useSlideHighlight() {
+  const itemRefs = useRef({});
+  const [style, setStyle] = useState({ top: 0, left: 0, width: 0, height: 0, opacity: 0 });
+
+  const moveTo = useCallback((id) => {
+    const el = itemRefs.current[id];
+    if (!el) return;
+    setStyle({
+      top: el.offsetTop,
+      left: el.offsetLeft,
+      width: el.offsetWidth,
+      height: el.offsetHeight,
+      opacity: 1,
+    });
+  }, []);
+
+  const hide = useCallback(() => {
+    setStyle((prev) => ({ ...prev, opacity: 0 }));
+  }, []);
+
+  return { itemRefs, style, moveTo, hide };
+}
+
 export default function SideNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [currentModule, setCurrentModule] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Sliding hover highlight, tracked separately for the main list and the drawer list
+  const mainHighlight = useSlideHighlight();
+  const drawerHighlight = useSlideHighlight();
+
+  // Closing the drawer slides it out from under the pointer via a CSS
+  // transform, which never fires a natural mouseleave — reset the drawer's
+  // highlight explicitly so a stale highlight doesn't reappear on reopen
+  useEffect(() => {
+    if (!drawerOpen) drawerHighlight.hide();
+  }, [drawerOpen, drawerHighlight.hide]);
 
   // states for managing navbar overflow
   const containerRef = useRef(null);
@@ -67,7 +105,8 @@ export default function SideNav() {
       if (children.length === 0) return;
 
       // Get actual height of first child (all items should be same height)
-      const itemHeight = children[0]?.offsetHeight || 60;
+      const firstNavItem = navElement.querySelector(".sideNavOptionTile");
+      const itemHeight = firstNavItem?.offsetHeight || 60;
       const footerHeight = itemHeight; // Space for "+N more" button (same as item height)
       const availableHeight = containerHeight - footerHeight;
 
@@ -75,7 +114,7 @@ export default function SideNav() {
       let totalHeight = 0;
       let visibleItemCount = 0;
 
-      for (let i = 0; i < navigationItems.length; i++) {
+      for (let i = 0; i < orderedNavigationItems.length; i++) {
         totalHeight += itemHeight;
         if (totalHeight <= availableHeight) {
           visibleItemCount++;
@@ -90,9 +129,9 @@ export default function SideNav() {
         "Calculated visible items:",
         calculatedVisible,
         "Total items:",
-        navigationItems.length,
+        orderedNavigationItems.length,
       );
-      setHasOverflow(navigationItems.length > calculatedVisible);
+      setHasOverflow(orderedNavigationItems.length > calculatedVisible);
     };
 
     // Delay to ensure DOM is rendered
@@ -103,7 +142,7 @@ export default function SideNav() {
       clearTimeout(timer);
       window.removeEventListener("resize", checkOverflow);
     };
-  }, [navigationItems]);
+  }, [orderedNavigationItems]);
 
   // Track current module based on pathname
   useEffect(() => {
@@ -113,12 +152,9 @@ export default function SideNav() {
     const matchedItem = navigationItems.find((item) => {
       // Remove /* wildcard from path for matching
       const cleanPath = item.path.replace("/*", "");
-      // Check for exact match or path starts with the nav item path
-      return (
-        path === cleanPath ||
-        path.startsWith(cleanPath + "/") ||
-        path.startsWith(cleanPath)
-      );
+      // Exact match, or a real sub-path (not just a string prefix - e.g.
+      // "/admin-console2" must not match the "/admin-console" item)
+      return path === cleanPath || path.startsWith(cleanPath + "/");
     });
 
     if (matchedItem) {
@@ -160,7 +196,7 @@ export default function SideNav() {
     );
   };
 
-  const renderNavItem = (navItem, isInDrawer = false) => {
+  const renderNavItem = (navItem, isInDrawer = false, highlight = null) => {
     const isSelected = currentModule === navItem.moduleName;
     const translatedLabel = t(navItem.label);
 
@@ -169,18 +205,13 @@ export default function SideNav() {
         className={`sideNavOptionTile ${isSelected ? "selectedOption" : ""}`}
         key={navItem.id}
         onClick={() => onSelectModule(navItem, isInDrawer)}
+        onMouseEnter={() => highlight?.moveTo(navItem.id)}
         sx={{
           cursor: "pointer",
           width: isInDrawer ? "auto" : "95%",
           minWidth: isInDrawer ? "120px" : "auto",
           "&:not(.selectedOption):hover": {
             background: "transparent !important",
-            "& .iconBadge": {
-              background:
-                theme.palette.mode === "light"
-                  ? "#EDEBFF"
-                  : theme.palette.background.datagridHeader,
-            },
             "& .sideNavOptionIcon, & .MuiSvgIcon-root": {
               color: `${theme.palette.primary.main} !important`,
             },
@@ -203,11 +234,37 @@ export default function SideNav() {
           },
         }}
       >
-        <div className="iconBadge">{renderIcon(navItem.icon)}</div>
+        <div
+          className="iconBadge"
+          ref={(el) => {
+            if (highlight) highlight.itemRefs.current[navItem.id] = el;
+          }}
+        >
+          {renderIcon(navItem.icon)}
+        </div>
         <p className="sideNavLabel">{translatedLabel}</p>
       </Box>
     );
   };
+
+  const renderHoverHighlight = (highlight) => (
+    <Box
+      className="sideNavHoverHighlight"
+      sx={{
+        position: "absolute",
+        top: highlight.style.top,
+        left: highlight.style.left,
+        width: highlight.style.width,
+        height: highlight.style.height,
+        opacity: highlight.style.opacity,
+        backgroundColor: "#EDEBFF",
+        borderRadius: "12px",
+        transition: "top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease, opacity 0.15s ease",
+        pointerEvents: "none",
+        zIndex: -1,
+      }}
+    />
+  );
 
   const visibleItems = hasOverflow
     ? orderedNavigationItems.slice(0, visibleCount)
@@ -228,8 +285,13 @@ export default function SideNav() {
           position: "relative",
         }}
       >
-        <div className="sideNav" style={{ overflowY: "hidden" }}>
-          {visibleItems.map((navItem) => renderNavItem(navItem))}
+        <div
+          className="sideNav"
+          style={{ overflowY: "hidden" }}
+          onMouseLeave={mainHighlight.hide}
+        >
+          {renderHoverHighlight(mainHighlight)}
+          {visibleItems.map((navItem) => renderNavItem(navItem, false, mainHighlight))}
 
           {/* Show "+N more" button if there's overflow */}
           {hasOverflow && (
@@ -237,7 +299,6 @@ export default function SideNav() {
               className="sideNavOptionTile"
               onClick={() => setDrawerOpen(true)}
               sx={{
-                borderTop: `1px solid ${theme.palette.divider}`,
                 cursor: "pointer",
                 width: "95%",
                 "&:hover": {
@@ -254,28 +315,10 @@ export default function SideNav() {
                 },
               }}
             >
-              <div
-                className="iconBadge"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "4px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: "700",
-                    color: "#fff",
-                    textAlign: "center",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  +{overflowItems.length} more
-                </span>
+              <div className="iconBadge">
+                <MoreApps />
               </div>
+              <p className="sideNavLabel">+{overflowItems.length} more</p>
             </Box>
           )}
         </div>
@@ -325,8 +368,19 @@ export default function SideNav() {
             boxSizing: "border-box",
           }}
         >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {overflowItems.map((navItem) => renderNavItem(navItem, true))}
+          <Box
+            sx={{
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+            onMouseLeave={drawerHighlight.hide}
+          >
+            {renderHoverHighlight(drawerHighlight)}
+            {overflowItems.map((navItem) =>
+              renderNavItem(navItem, true, drawerHighlight),
+            )}
           </Box>
         </Box>
       </Box>
