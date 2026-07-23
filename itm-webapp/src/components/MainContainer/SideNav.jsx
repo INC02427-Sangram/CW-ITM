@@ -33,6 +33,26 @@ export default function SideNav() {
   // Get navigation items from sideNavData
   const navigationItems = getSideNavItems();
 
+  // Custom ordering so selecting an item from the overflow drawer promotes it
+  // into the visible list, swapping places with the last visible item
+  const [orderedIds, setOrderedIds] = useState(() =>
+    navigationItems.map((item) => item.id),
+  );
+
+  useEffect(() => {
+    setOrderedIds((prevIds) => {
+      const currentIds = navigationItems.map((item) => item.id);
+      const sameSet =
+        prevIds.length === currentIds.length &&
+        prevIds.every((id) => currentIds.includes(id));
+      return sameSet ? prevIds : currentIds;
+    });
+  }, [navigationItems]);
+
+  const orderedNavigationItems = orderedIds
+    .map((id) => navigationItems.find((item) => item.id === id))
+    .filter(Boolean);
+
   // useEffect to check if the navigation items exceed the container height
   useEffect(() => {
     const checkOverflow = () => {
@@ -106,12 +126,29 @@ export default function SideNav() {
     }
   }, [location.pathname, navigationItems]);
 
-  const onSelectModule = (navItem) => {
+  const onSelectModule = (navItem, isInDrawer = false) => {
     setCurrentModule(navItem.moduleName);
     // Remove /* wildcard from path for navigation
     const cleanPath = navItem.path.replace("/*", "");
     navigate(cleanPath);
     setDrawerOpen(false); // Close drawer when navigating
+
+    if (isInDrawer) {
+      // Promote the selected item into the visible list, swapping it with
+      // the last currently-visible item, which moves into the drawer
+      setOrderedIds((prevIds) => {
+        const ids = [...prevIds];
+        const selectedIndex = ids.indexOf(navItem.id);
+        const lastVisibleIndex = visibleCount - 1;
+        if (selectedIndex <= lastVisibleIndex) return ids;
+
+        [ids[lastVisibleIndex], ids[selectedIndex]] = [
+          ids[selectedIndex],
+          ids[lastVisibleIndex],
+        ];
+        return ids;
+      });
+    }
   };
 
   const renderIcon = (IconComponent) => {
@@ -131,7 +168,7 @@ export default function SideNav() {
       <Box
         className={`sideNavOptionTile ${isSelected ? "selectedOption" : ""}`}
         key={navItem.id}
-        onClick={() => onSelectModule(navItem)}
+        onClick={() => onSelectModule(navItem, isInDrawer)}
         sx={{
           cursor: "pointer",
           width: isInDrawer ? "auto" : "95%",
@@ -173,9 +210,11 @@ export default function SideNav() {
   };
 
   const visibleItems = hasOverflow
-    ? navigationItems.slice(0, visibleCount)
-    : navigationItems;
-  const overflowItems = hasOverflow ? navigationItems.slice(visibleCount) : [];
+    ? orderedNavigationItems.slice(0, visibleCount)
+    : orderedNavigationItems;
+  const overflowItems = hasOverflow
+    ? orderedNavigationItems.slice(visibleCount)
+    : [];
 
   return (
     <>
