@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
 import "./SideNav.css";
-import { Box, Drawer, IconButton, Typography } from "@mui/material";
+import { Box, IconButton, Typography } from "@mui/material";
 import { getSideNavItems } from "../../config/sidenav.config";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import CloseIcon from "@mui/icons-material/Close";
@@ -40,7 +40,7 @@ export default function SideNav() {
       if (!el) return;
 
       const containerHeight = el.clientHeight;
-      const navElement = el.querySelector('.sideNav');
+      const navElement = el.querySelector(".sideNav");
       if (!navElement) return;
 
       const children = Array.from(navElement.children);
@@ -66,7 +66,12 @@ export default function SideNav() {
 
       const calculatedVisible = Math.max(1, visibleItemCount);
       setVisibleCount(calculatedVisible);
-      console.log("Calculated visible items:", calculatedVisible, "Total items:", navigationItems.length);
+      console.log(
+        "Calculated visible items:",
+        calculatedVisible,
+        "Total items:",
+        navigationItems.length,
+      );
       setHasOverflow(navigationItems.length > calculatedVisible);
     };
 
@@ -167,7 +172,9 @@ export default function SideNav() {
     );
   };
 
-  const visibleItems = hasOverflow ? navigationItems.slice(0, visibleCount) : navigationItems;
+  const visibleItems = hasOverflow
+    ? navigationItems.slice(0, visibleCount)
+    : navigationItems;
   const overflowItems = hasOverflow ? navigationItems.slice(visibleCount) : [];
 
   return (
@@ -208,14 +215,25 @@ export default function SideNav() {
                 },
               }}
             >
-              <div className="iconBadge" style={{ 
-                display: "flex", 
-                flexDirection: "column",
-                alignItems: "center", 
-                justifyContent: "center",
-                padding: "4px"
-              }}>
-                <span style={{ fontSize: "10px", fontWeight: "700", color: "#fff", textAlign: "center", lineHeight: "1.2" }}>
+              <div
+                className="iconBadge"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: "700",
+                    color: "#fff",
+                    textAlign: "center",
+                    lineHeight: "1.2",
+                  }}
+                >
                   +{overflowItems.length} more
                 </span>
               </div>
@@ -224,37 +242,71 @@ export default function SideNav() {
         </div>
       </Box>
 
-      {/* Drawer for overflow items */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+      {/* Backdrop + sliding panel for overflow items, anchored past the sidebar */}
+      <Box
+        onClick={() => setDrawerOpen(false)}
         sx={{
-          "& .MuiDrawer-paper": {
-            width: "15%",
-            backgroundColor: theme.palette.background.default,
-            marginLeft: "6rem", // Offset by sidebar width
-            padding: "16px",
-          },
+          position: "fixed",
+          top: 0,
+          left: "6rem",
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          zIndex: 1199,
+          opacity: drawerOpen ? 1 : 0,
+          pointerEvents: drawerOpen ? "auto" : "none",
+          transition: "opacity 225ms ease",
+        }}
+      />
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: "6rem",
+          bottom: 0,
+          width: "15%",
+          overflow: "hidden",
+          zIndex: 1200,
+          pointerEvents: drawerOpen ? "auto" : "none",
         }}
       >
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "16px",
+            position: "absolute",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: "100%",
+            backgroundColor: theme.palette.background.default,
+            padding: "16px",
+            boxShadow: "2px 0 8px rgba(0, 0, 0, 0.3)",
+            transform: drawerOpen ? "translateX(0)" : "translateX(-100%)",
+            transition: "transform 225ms ease",
+            overflowY: "auto",
+            boxSizing: "border-box",
           }}
         >
-          <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: theme.palette.text.primary,marginLeft:"auto" }}>
-            <CloseIcon />
-          </IconButton>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <IconButton
+              onClick={() => setDrawerOpen(false)}
+              sx={{ color: theme.palette.text.primary, marginLeft: "auto" }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {overflowItems.map((navItem) => renderNavItem(navItem, true))}
+          </Box>
         </Box>
-        
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {overflowItems.map((navItem) => renderNavItem(navItem, true))}
-        </Box>
-      </Drawer>
+      </Box>
     </>
   );
 }
