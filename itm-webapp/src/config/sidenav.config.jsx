@@ -142,26 +142,6 @@ export const sideNavConfig = [
     showInNav: true,
     index: 8,
   },
-    {
-    id: "admin-console1",
-    path: "/admin-console1/*",
-    label: "Admin Console 1",
-    moduleName: "Admin Console 1",
-    icon: SettingsIcon,
-    component: AdminConsole,
-    showInNav: true,
-    index: 9,
-  },
-    {
-    id: "admin-console2",
-    path: "/admin-console2/*",
-    label: "Admin Console 2",
-    moduleName: "Admin Console 2",
-    icon: SettingsIcon,
-    component: AdminConsole,
-    showInNav: true,
-    index: 10,
-  }
 ];
 
 // Helper function to get navigation item by id

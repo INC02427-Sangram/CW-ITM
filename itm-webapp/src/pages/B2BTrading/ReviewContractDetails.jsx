@@ -150,11 +150,21 @@ export default function ReviewContractDetails({
   return (
     <Box>
       {REVIEW_SECTIONS.map((section) => (
-        <Accordion key={section.title} defaultExpanded disableGutters sx={accordionSx}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{
-            backgroundColor: "#f2f6ff",
-          }}>
-            <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}>
+        <Accordion
+          key={section.title}
+          defaultExpanded
+          disableGutters
+          sx={accordionSx}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              backgroundColor: "#f2f6ff",
+            }}
+          >
+            <Typography
+              sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}
+            >
               {section.title}
             </Typography>
           </AccordionSummary>
@@ -179,7 +189,9 @@ export default function ReviewContractDetails({
                   <Typography sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}>
                     {field.label}:
                   </Typography>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: "#2f3136" }}>
+                  <Typography
+                    sx={{ fontSize: 13, fontWeight: 600, color: "#2f3136" }}
+                  >
                     {displayValues[field.key] || "-"}
                   </Typography>
                 </Box>
@@ -191,7 +203,13 @@ export default function ReviewContractDetails({
 
       <Box sx={sectionCardSx}>
         <Typography
-          sx={{ fontSize: 14, fontWeight: 700, color: "#2f3136", mb: 2, textAlign: "left" }}
+          sx={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: "#2f3136",
+            mb: 2,
+            textAlign: "left",
+          }}
         >
           Contract Items
         </Typography>

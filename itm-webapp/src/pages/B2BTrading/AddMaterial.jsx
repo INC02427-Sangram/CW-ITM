@@ -19,64 +19,126 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { Add } from "@cw/rds/icons";
-
+import CallSplit from "@mui/icons-material/CallSplit";
+import ReusableToast from "../../components/Common/ReusableToast";
 const MATERIAL_OPTIONS = [
   "Glycol - 2114",
   "Lens - XJ720",
   "Steel",
   "Camera Cabinet",
 ];
+const SUPPLIER_OPTIONS = ["BASF", "Lenskart", "Tata Steel", "Sony"];
+const ITEM_CATEGORY_OPTIONS = ["Stock Shipment", "Direct Shipment"];
 const UNIT_OPTIONS = ["MT", "KG", "L", "PC"];
+const PLANT_OPTIONS = ["PL01", "PL02", "PL03"];
+const STORAGE_LOCATION_OPTIONS = ["SL-100", "SL-200", "SL-300"];
 
 const columns = [
-  "#",
-  "Material",
-  "Target Quantity",
-  "Unit",
-  "Buy Price",
-  "Sell Price",
-  "Net Value",
-  "Actions",
+  { key: "serial", label: "#" },
+  { key: "supplier", label: "Supplier" },
+  { key: "material", label: "Material" },
+  { key: "itemCategory", label: "Item Category" },
+  { key: "purchaseQty", label: "Purchase Qty" },
+  { key: "purchaseUnit", label: "Purchase Unit" },
+  { key: "salesQty", label: "Sales Qty" },
+  { key: "salesUnit", label: "Sales Unit" },
+  { key: "buyPrice", label: "Buy Price" },
+  { key: "sellPrice", label: "Sell Price" },
+  { key: "priceUnit", label: "Price Unit" },
+  { key: "plant", label: "Plant" },
+  { key: "storageLocation", label: "Storage Location" },
+  { key: "deliveryDate", label: "Delivery Date" },
+  { key: "netValue", label: "Net Value" },
+  { key: "actions", label: "Actions" },
 ];
+
+const FIELD_CONFIG = {
+  supplier: { type: "select", options: SUPPLIER_OPTIONS },
+  material: { type: "select", options: MATERIAL_OPTIONS },
+  itemCategory: { type: "select", options: ITEM_CATEGORY_OPTIONS },
+  purchaseQty: { type: "number" },
+  purchaseUnit: { type: "select", options: UNIT_OPTIONS },
+  salesQty: { type: "number" },
+  salesUnit: { type: "select", options: UNIT_OPTIONS },
+  buyPrice: { type: "number", prefix: "$" },
+  sellPrice: { type: "number", prefix: "€" },
+  priceUnit: { type: "select", options: UNIT_OPTIONS },
+  plant: { type: "select", options: PLANT_OPTIONS },
+  storageLocation: { type: "select", options: STORAGE_LOCATION_OPTIONS },
+  deliveryDate: { type: "date" },
+};
 
 let rowIdCounter = 0;
 const nextRowId = () => `row-${++rowIdCounter}`;
 
 const createEmptyRow = () => ({
   id: nextRowId(),
+  supplier: "",
   material: "",
-  targetQuantity: "",
-  unit: "",
+  itemCategory: "",
+  salesQty: "",
+  salesUnit: "",
+  purchaseQty: "",
+  purchaseUnit: "",
   buyPrice: "",
   sellPrice: "",
+  priceUnit: "",
+  plant: "",
+  storageLocation: "",
+  deliveryDate: "",
   editing: true,
 });
 
 const calcNetValue = (row) =>
-  (Number(row.targetQuantity) || 0) * (Number(row.sellPrice) || 0);
+  (Number(row.salesQty) || 0) * (Number(row.sellPrice) || 0);
 
 const formatCurrency = (value) =>
   `€${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const cellSx = { verticalAlign: "middle" };
 
+const normalizeRow = (item) => ({
+  id: item.id || nextRowId(),
+  supplier: item.supplier || "",
+  material: item.material || "",
+  itemCategory: item.itemCategory || "",
+  salesQty: item.salesQty || "",
+  salesUnit: item.salesUnit || "",
+  purchaseQty: item.purchaseQty || "",
+  purchaseUnit: item.purchaseUnit || "",
+  buyPrice: item.buyPrice || "",
+  sellPrice: item.sellPrice || "",
+  priceUnit: item.priceUnit || "",
+  plant: item.plant || "",
+  storageLocation: item.storageLocation || "",
+  deliveryDate: item.deliveryDate || "",
+  editing: false,
+});
+
 const AddMaterial = forwardRef(
   ({ initialItems, readOnly = false, disableAddMaterial }, ref) => {
+    const [toastOpen, setToastOpen] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [toastSeverity, setToastSeverity] = useState("success");
     const [rows, setRows] = useState(() =>
       initialItems?.length
-        ? initialItems.map((item) => ({
-            ...item,
-            id: item.id || nextRowId(),
-            editing: false,
-          }))
+        ? initialItems.map((item) => normalizeRow(item))
         : [
             {
               id: nextRowId(),
+              supplier: "BASF",
               material: "Glycol - 2114",
-              targetQuantity: "10000",
-              unit: "MT",
+              itemCategory: "Stock Shipment",
+              salesQty: "10000",
+              salesUnit: "MT",
+              purchaseQty: "10000",
+              purchaseUnit: "MT",
               buyPrice: "80",
               sellPrice: "50",
+              priceUnit: "MT",
+              plant: "PL01",
+              storageLocation: "SL-100",
+              deliveryDate: "",
               editing: false,
             },
           ],
@@ -103,6 +165,171 @@ const AddMaterial = forwardRef(
     const handleDeleteRow = (id) =>
       setRows((prev) => prev.filter((row) => row.id !== id));
 
+    const handleSplitItem = (id) => {
+      setRows((prev) => {
+        const rowToSplit = prev.find((row) => row.id === id);
+        if (!rowToSplit) return prev;
+        const remainingQty = Number(rowToSplit.purchaseQty || 0);
+        if (remainingQty <= 0) {
+          setToastMessage("Cannot split item with zero or negative quantity");
+          setToastSeverity("error");
+          setToastOpen(true);
+          return prev;
+        }
+        if (remainingQty < 2) {
+          setToastMessage("Cannot split item with quantity less than 2");
+          setToastSeverity("error");
+          setToastOpen(true);
+          return prev;
+        }
+        if (rowToSplit.editing) {
+          setToastMessage("Please confirm the row before splitting");
+          setToastSeverity("error");
+          setToastOpen(true);
+          return prev;
+        }
+        // Split the quantity into two halves, rounding down for the first half
+        // and assigning the remainder to the second half. This ensures that the
+        // total quantity remains consistent after the split.
+        const halfQty = Math.floor(remainingQty / 2);
+
+        return prev.flatMap((row) => {
+          if (row.id !== id) return [row];
+
+          const updatedCurrentRow = {
+            ...row,
+            purchaseQty: String(halfQty),
+          };
+
+          const newRow = {
+            ...row,
+            id: nextRowId(),
+            purchaseQty: String(remainingQty - halfQty),
+            editing: true,
+          };
+
+          return [updatedCurrentRow, newRow];
+        });
+      });
+    };
+
+    const renderEditableField = (row, columnKey) => {
+      const config = FIELD_CONFIG[columnKey];
+      if (!config) return "-";
+
+      if (config.type === "select") {
+        return (
+          <Select
+            value={row[columnKey] || ""}
+            onChange={(e) => updateRow(row.id, columnKey, e.target.value)}
+            displayEmpty
+            size="small"
+            fullWidth
+          >
+            <MenuItem value="">
+              <em>-</em>
+            </MenuItem>
+            {config.options.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        );
+      }
+
+      return (
+        <TextField
+          value={row[columnKey] || ""}
+          onChange={(e) => updateRow(row.id, columnKey, e.target.value)}
+          size="small"
+          type={config.type}
+          fullWidth
+          InputProps={config.prefix ? { startAdornment: config.prefix } : {}}
+          InputLabelProps={
+            config.type === "date" ? { shrink: true } : undefined
+          }
+        />
+      );
+    };
+
+    const renderReadOnlyField = (row, columnKey) => {
+      if (columnKey === "purchaseQty" || columnKey === "salesQty") {
+        return Number(row[columnKey] || 0).toLocaleString();
+      }
+
+      if (columnKey === "buyPrice" || columnKey === "sellPrice") {
+        const value = row[columnKey];
+        if (!value) return "-";
+        const symbol = columnKey === "buyPrice" ? "$" : "€";
+        return `${symbol} ${Number(value).toFixed(2)}`;
+      }
+
+      return row[columnKey] || "-";
+    };
+
+    const renderCell = (row, index, columnKey) => {
+      if (columnKey === "serial") {
+        return (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            {!readOnly && (
+              <IconButton
+                size="small"
+                onClick={() => handleSplitItem(row.id)}
+                title="Split item"
+              >
+                <CallSplit fontSize="small" />
+              </IconButton>
+            )}
+            <Typography component="span" sx={{ fontSize: 13 }}>
+              {index + 1}
+            </Typography>
+          </Box>
+        );
+      }
+
+      if (columnKey === "netValue") {
+        return formatCurrency(calcNetValue(row));
+      }
+
+      if (columnKey === "actions") {
+        return row.editing ? (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              justifyContent: "center",
+            }}
+          >
+            <IconButton size="small" onClick={() => handleConfirmRow(row.id)}>
+              <CheckIcon sx={{ color: "#2e7d32", fontSize: 20 }} />
+            </IconButton>
+            <IconButton size="small" onClick={() => handleCancelRow(row.id)}>
+              <CloseIcon sx={{ color: "#c0392b", fontSize: 20 }} />
+            </IconButton>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.5,
+              justifyContent: "center",
+            }}
+          >
+            <IconButton size="small" onClick={() => handleEditRow(row.id)}>
+              <EditIcon sx={{ color: "#7a8aa0", fontSize: 18 }} />
+            </IconButton>
+            <IconButton size="small" onClick={() => handleDeleteRow(row.id)}>
+              <DeleteOutlineIcon sx={{ color: "#c0392b", fontSize: 18 }} />
+            </IconButton>
+          </Box>
+        );
+      }
+
+      return row.editing
+        ? renderEditableField(row, columnKey)
+        : renderReadOnlyField(row, columnKey);
+    };
     useImperativeHandle(
       ref,
       () => ({
@@ -115,6 +342,12 @@ const AddMaterial = forwardRef(
 
     return (
       <Box>
+        <ReusableToast
+          open={toastOpen}
+          severity={toastSeverity}
+          message={toastMessage}
+          onClose={() => setToastOpen(false)}
+        />
         <Box
           sx={{
             display: "flex",
@@ -149,13 +382,13 @@ const AddMaterial = forwardRef(
           <Table size="small">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#9aa1ac" }}>
-                {columns.map((label) => (
+                {columns.map((column) => (
                   <TableCell
-                    key={label}
-                    align={label === "Actions" ? "center" : "left"}
+                    key={column.key}
+                    align={column.key === "actions" ? "center" : "left"}
                     sx={{ color: "#ffffff", fontWeight: 600, fontSize: 13 }}
                   >
-                    {label}
+                    {column.label}
                   </TableCell>
                 ))}
               </TableRow>
@@ -174,160 +407,15 @@ const AddMaterial = forwardRef(
               ) : (
                 rows.map((row, index) => (
                   <TableRow key={row.id}>
-                    <TableCell sx={cellSx}>{index + 1}</TableCell>
-                    <TableCell sx={cellSx}>
-                      {row.editing ? (
-                        <Select
-                          value={row.material}
-                          onChange={(e) =>
-                            updateRow(row.id, "material", e.target.value)
-                          }
-                          displayEmpty
-                          size="small"
-                          fullWidth
-                        >
-                          <MenuItem value="">
-                            <em>-</em>
-                          </MenuItem>
-                          {MATERIAL_OPTIONS.map((m) => (
-                            <MenuItem key={m} value={m}>
-                              {m}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      ) : (
-                        row.material || "-"
-                      )}
-                    </TableCell>
-                    <TableCell sx={cellSx}>
-                      {row.editing ? (
-                        <TextField
-                          value={row.targetQuantity}
-                          onChange={(e) =>
-                            updateRow(row.id, "targetQuantity", e.target.value)
-                          }
-                          size="small"
-                          type="number"
-                          fullWidth
-                        />
-                      ) : (
-                        Number(row.targetQuantity || 0).toLocaleString()
-                      )}
-                    </TableCell>
-                    <TableCell sx={cellSx}>
-                      {row.editing ? (
-                        <Select
-                          value={row.unit}
-                          onChange={(e) =>
-                            updateRow(row.id, "unit", e.target.value)
-                          }
-                          displayEmpty
-                          size="small"
-                          fullWidth
-                        >
-                          <MenuItem value="">
-                            <em>-</em>
-                          </MenuItem>
-                          {UNIT_OPTIONS.map((u) => (
-                            <MenuItem key={u} value={u}>
-                              {u}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      ) : (
-                        row.unit || "-"
-                      )}
-                    </TableCell>
-                    <TableCell sx={cellSx}>
-                      {row.editing ? (
-                        <TextField
-                          value={row.buyPrice}
-                          onChange={(e) =>
-                            updateRow(row.id, "buyPrice", e.target.value)
-                          }
-                          size="small"
-                          type="number"
-                          fullWidth
-                          InputProps={{ startAdornment: "$" }}
-                        />
-                      ) : row.buyPrice ? (
-                        `$ ${Number(row.buyPrice).toFixed(2)}`
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                    <TableCell sx={cellSx}>
-                      {row.editing ? (
-                        <TextField
-                          value={row.sellPrice}
-                          onChange={(e) =>
-                            updateRow(row.id, "sellPrice", e.target.value)
-                          }
-                          size="small"
-                          type="number"
-                          fullWidth
-                          InputProps={{ startAdornment: "€" }}
-                        />
-                      ) : row.sellPrice ? (
-                        `€ ${row.sellPrice}`
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                    <TableCell sx={cellSx}>
-                      {formatCurrency(calcNetValue(row))}
-                    </TableCell>
-                    <TableCell align="center" sx={cellSx}>
-                      {row.editing ? (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 0.5,
-                            justifyContent: "center",
-                          }}
-                        >
-                          <IconButton
-                            size="small"
-                            onClick={() => handleConfirmRow(row.id)}
-                          >
-                            <CheckIcon
-                              sx={{ color: "#2e7d32", fontSize: 20 }}
-                            />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCancelRow(row.id)}
-                          >
-                            <CloseIcon
-                              sx={{ color: "#c0392b", fontSize: 20 }}
-                            />
-                          </IconButton>
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 0.5,
-                            justifyContent: "center",
-                          }}
-                        >
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditRow(row.id)}
-                          >
-                            <EditIcon sx={{ color: "#7a8aa0", fontSize: 18 }} />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteRow(row.id)}
-                          >
-                            <DeleteOutlineIcon
-                              sx={{ color: "#c0392b", fontSize: 18 }}
-                            />
-                          </IconButton>
-                        </Box>
-                      )}
-                    </TableCell>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={`${row.id}-${column.key}`}
+                        align={column.key === "actions" ? "center" : "left"}
+                        sx={cellSx}
+                      >
+                        {renderCell(row, index, column.key)}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
               )}
