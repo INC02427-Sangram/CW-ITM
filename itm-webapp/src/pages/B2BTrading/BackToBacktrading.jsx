@@ -93,22 +93,9 @@ const statCards = [
 
 export default function BackToBacktrading() {
   const navigate = useNavigate();
-  const formRef = useRef(null);
 
   const [createContractOpen, setCreateContractOpen] = useState(false);
   const [contractData, setContractData] = useState(null);
-  const onClose = () => {
-    setCreateContractOpen(false);
-    setContractData(null);
-    if (formRef.current) formRef.current.reset();
-  };
-  const handleSubmit = () => {
-    // Handle form submission logic here
-    const data = formRef.current.getValues();
-    console.log("Form submitted", data);
-    setContractData(data);
-    onClose();
-  };
 
   // Dashboard view component
   const DashboardView = () => (

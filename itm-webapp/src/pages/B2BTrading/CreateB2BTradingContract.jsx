@@ -23,7 +23,20 @@ import { ArrowBack } from "@cw/rds/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { dummyContractData } from "../../dummydatas/dummydata";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 // Converts a display-formatted date ("01/Jan/2024") back to ISO ("2024-01-01").
 // Values already in another format (e.g. ISO) are passed through untouched.
@@ -42,31 +55,56 @@ const toISODate = (value) => {
 // Fields the details page doesn't carry fall back to the default dummy header.
 const buildHeaderDetailsFromContractData = (contractData) => {
   if (!contractData) return dummyContractData.headerDetails;
-  const [incoCode = "", ...incoLocParts] = String(contractData.incoterms || "").split(" - ");
+  const [incoCode = "", ...incoLocParts] = String(
+    contractData.incoterms || "",
+  ).split(" - ");
   const incoLoc = incoLocParts.join(" - ").trim();
 
   return {
     ...dummyContractData.headerDetails,
-    ITM_CTC_SUPPLIER: contractData.supplier || dummyContractData.headerDetails.ITM_CTC_SUPPLIER,
-    ITM_CTC_DOC_DATE: toISODate(contractData.documentDate) || dummyContractData.headerDetails.ITM_CTC_DOC_DATE,
-    ITM_CTC_VAL_FROM: toISODate(contractData.validityFrom) || dummyContractData.headerDetails.ITM_CTC_VAL_FROM,
-    ITM_CTC_VAL_TO: toISODate(contractData.validityTo) || dummyContractData.headerDetails.ITM_CTC_VAL_TO,
-    ITM_CTC_PERSON: contractData.personResponsible || dummyContractData.headerDetails.ITM_CTC_PERSON,
+    ITM_CTC_SUPPLIER:
+      contractData.supplier || dummyContractData.headerDetails.ITM_CTC_SUPPLIER,
+    ITM_CTC_DOC_DATE:
+      toISODate(contractData.documentDate) ||
+      dummyContractData.headerDetails.ITM_CTC_DOC_DATE,
+    ITM_CTC_VAL_FROM:
+      toISODate(contractData.validityFrom) ||
+      dummyContractData.headerDetails.ITM_CTC_VAL_FROM,
+    ITM_CTC_VAL_TO:
+      toISODate(contractData.validityTo) ||
+      dummyContractData.headerDetails.ITM_CTC_VAL_TO,
+    ITM_CTC_PERSON:
+      contractData.personResponsible ||
+      dummyContractData.headerDetails.ITM_CTC_PERSON,
     ITM_CTC_PURCH_ORG:
-      contractData.purchasingOrganization || dummyContractData.headerDetails.ITM_CTC_PURCH_ORG,
+      contractData.purchasingOrganization ||
+      dummyContractData.headerDetails.ITM_CTC_PURCH_ORG,
     ITM_CTC_SALES_ORG:
-      contractData.purchasingOrganization || dummyContractData.headerDetails.ITM_CTC_SALES_ORG,
-    ITM_CTC_PURCH_CUR: contractData.currency || dummyContractData.headerDetails.ITM_CTC_PURCH_CUR,
-    ITM_CTC_SALES_CUR: contractData.currency || dummyContractData.headerDetails.ITM_CTC_SALES_CUR,
-    ITM_CTC_PURCH_INCO: incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO,
-    ITM_CTC_PURCH_INCO_LOC: incoLoc || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO_LOC,
-    ITM_CTC_SALES_INCO: incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_SALES_INCO,
-    ITM_CTC_SALES_INCO_LOC: incoLoc || dummyContractData.headerDetails.ITM_CTC_SALES_INCO_LOC,
-    ITM_CTC_TERMS_OF_PAY: contractData.paymentTerms || dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY,
+      contractData.purchasingOrganization ||
+      dummyContractData.headerDetails.ITM_CTC_SALES_ORG,
+    ITM_CTC_PURCH_CUR:
+      contractData.currency ||
+      dummyContractData.headerDetails.ITM_CTC_PURCH_CUR,
+    ITM_CTC_SALES_CUR:
+      contractData.currency ||
+      dummyContractData.headerDetails.ITM_CTC_SALES_CUR,
+    ITM_CTC_PURCH_INCO:
+      incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO,
+    ITM_CTC_PURCH_INCO_LOC:
+      incoLoc || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO_LOC,
+    ITM_CTC_SALES_INCO:
+      incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_SALES_INCO,
+    ITM_CTC_SALES_INCO_LOC:
+      incoLoc || dummyContractData.headerDetails.ITM_CTC_SALES_INCO_LOC,
+    ITM_CTC_TERMS_OF_PAY:
+      contractData.paymentTerms ||
+      dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY,
     ITM_CTC_TERMS_OF_PAY_SELL:
-      contractData.paymentTerms || dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY_SELL,
+      contractData.paymentTerms ||
+      dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY_SELL,
     ITM_CTC_EXC_RATE_TYPE:
-      contractData.exchangeRateType || dummyContractData.headerDetails.ITM_CTC_EXC_RATE_TYPE,
+      contractData.exchangeRateType ||
+      dummyContractData.headerDetails.ITM_CTC_EXC_RATE_TYPE,
   };
 };
 
@@ -285,7 +323,6 @@ export default function CreateB2BTradingContractPage() {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
             width: "100%",
           }}
         >
@@ -295,7 +332,9 @@ export default function CreateB2BTradingContractPage() {
                 sx={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 1.25,
+                  flex: 1,
                   whiteSpace: "nowrap",
                 }}
               >
@@ -318,7 +357,9 @@ export default function CreateB2BTradingContractPage() {
               {index < steps.length - 1 && (
                 <Divider
                   sx={{
-                    minWidth: 90,
+                    flex: 1,
+                    minWidth: 20,
+                    maxWidth: 90,
                     borderColor: "#d9dee7",
                     borderBottomWidth: "2px",
                   }}
@@ -353,7 +394,7 @@ export default function CreateB2BTradingContractPage() {
       <BottomNavigation
         sx={{
           flexShrink: 0,
-          width: "100%",
+          width: "calc(100% - 4dvw)",
           height: "auto",
           px: { xs: 2, sm: 3 },
           py: 1,
@@ -361,6 +402,10 @@ export default function CreateB2BTradingContractPage() {
           justifyContent: "flex-end",
           backgroundColor: "#fff",
           borderTop: "1px solid #e3e7ee",
+          position: "fixed",
+          bottom: 0,
+          right: 0,
+          boxSizing: "border-box",
         }}
       >
         <Box

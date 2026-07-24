@@ -1,63 +1,49 @@
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   Stack,
   Typography,
   Tooltip,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Badge,
   IconButton as MuiIconButton,
   Box,
+  Avatar,
 } from "@mui/material";
-import TuneIcon from "@mui/icons-material/Tune";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import "./AppHeader.css";
 import CherryWork from "../../assets/cherrywork_logo.png";
-
-// TODO: replace with actual custom icon components
-const Setting = () => null;
-const ClipboardPlus = () => null;
-const Bell = () => null;
-const BellFilled = () => null;
-
-// TODO: replace with actual custom components
-const HeaderButton = ({ children, ...props }) => (
-  <button {...props}>{children}</button>
-);
-const CustomAvatar = ({ name, ...props }) => (
-  <span {...props}>{name?.[0]}</span>
-);
+import UserProfilePopover from "../Common/UserProfilePopover";
+import NotificationsPopover from "../Common/NotificationsPopover";
+import SystemHealthPopover from "../Common/SystemHealthPopover";
 
 export default function AppHeader() {
-  const user = { displayName: "Dev User", roles: ["TRADE_ADMIN"] };
+  // Get user info from Redux store
+  const { userInfo, isAuthenticated } = useSelector((state) => state.user);
 
-  const displayName = user?.displayName ?? "";
+  const displayName = isAuthenticated && userInfo 
+    ? `${userInfo.firstName} ${userInfo.lastName}` 
+    : "Guest";
 
-  const getDisplayRole = () => {
-    const role = user?.roles?.[0] ?? "";
-    return role
-      .replace(/_/g, " ")
-      .toLowerCase()
-      .replace(/\b\w/g, (c) => c.toUpperCase());
-  };
+  // Notifications popover state
+  const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
+  const isNotificationsOpen = Boolean(notificationsAnchorEl);
+  const unreadCount = 3; // Dummy unread count
 
-  const [appearanceAnchorEl, setAppearanceAnchorEl] = useState(null);
-  const isAppearanceOpen = Boolean(appearanceAnchorEl);
+  // System health popover state
+  const [healthAnchorEl, setHealthAnchorEl] = useState(null);
+  const isHealthOpen = Boolean(healthAnchorEl);
 
-  const [themeMode, setThemeMode] = useState("light");
-  const [, setThemeCustomizerOpen] = useState(false);
-  const resetCurrentMode = () => setThemeMode("light");
+  // Profile popover state
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
+  const isProfileOpen = Boolean(profileAnchorEl);
 
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const unreadCount = 0;
-
-  const handleSettingsOpen = (event) =>
-    setAppearanceAnchorEl(event.currentTarget);
-  const handleHealthOpen = () => {};
-  const handleNotificationsOpen = () => setIsNotificationsOpen((prev) => !prev);
-  const fnProfileClickHandler = () => {};
+  const handleHealthClick = (event) => setHealthAnchorEl(event.currentTarget);
+  const handleHealthClose = () => setHealthAnchorEl(null);
+  const handleNotificationsClick = (event) => setNotificationsAnchorEl(event.currentTarget);
+  const handleNotificationsClose = () => setNotificationsAnchorEl(null);
+  const handleProfileClick = (event) => setProfileAnchorEl(event.currentTarget);
+  const handleProfileClose = () => setProfileAnchorEl(null);
 
   return (
     <>
@@ -123,137 +109,90 @@ export default function AppHeader() {
           className="header-right"
           gap={1.5}
         >
-          <Tooltip title="Settings" arrow placement="bottom">
-            <MuiIconButton
-              onClick={handleSettingsOpen}
-              aria-label="notifications"
-              size="medium"
-              sx={{
-                // color: "#666",
-                "&:hover": {
-                  backgroundColor: "#eae9ff !important",
-                },
-              }}
-            >
-              <Setting />
-            </MuiIconButton>
-          </Tooltip>
-
-          <Menu
-            anchorEl={appearanceAnchorEl}
-            open={isAppearanceOpen}
-            onClose={() => setAppearanceAnchorEl(null)}
-          >
-            <MenuItem
-              disabled={themeMode !== "light"}
-              onClick={() => {
-                setAppearanceAnchorEl(null);
-                setThemeCustomizerOpen(true);
-              }}
-            >
-              <ListItemIcon>
-                <TuneIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Customize Light…</ListItemText>
-            </MenuItem>
-
-            <MenuItem
-              disabled={themeMode !== "light"}
-              onClick={() => {
-                setAppearanceAnchorEl(null);
-                resetCurrentMode();
-              }}
-            >
-              <ListItemIcon>
-                <RestartAltIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Reset</ListItemText>
-            </MenuItem>
-          </Menu>
-
           <Tooltip title="System Health" arrow placement="bottom">
             <MuiIconButton
-              onClick={handleHealthOpen}
-              aria-label="notifications"
+              onClick={handleHealthClick}
+              aria-label="system health"
               size="medium"
               sx={{
-                // color: green[600],
+                color: "#666",
                 "&:hover": {
                   backgroundColor: "#eae9ff !important",
+                  color: "#3730c7",
                 },
               }}
             >
-              <ClipboardPlus />
+              <AssessmentIcon />
             </MuiIconButton>
           </Tooltip>
 
           <Tooltip title="Notifications" arrow placement="bottom">
             <MuiIconButton
-              onClick={handleNotificationsOpen}
+              onClick={handleNotificationsClick}
               aria-label="notifications"
               size="medium"
               sx={{
+                color: "#666",
                 transition: "all 0.2s ease",
                 "&:hover": {
                   backgroundColor: "#eae9ff !important",
+                  color: "#3730c7",
                 },
               }}
             >
-              <Badge color="error" variant="dot" invisible={unreadCount === 0}>
-                {isNotificationsOpen ? (
-                  <BellFilled color="#0019ae" />
-                ) : (
-                  <Bell />
-                )}
+              <Badge 
+                color="error" 
+                badgeContent={unreadCount} 
+                max={9}
+              >
+                <NotificationsIcon />
               </Badge>
             </MuiIconButton>
           </Tooltip>
           <Tooltip title="User Profile" arrow placement="bottom">
             <MuiIconButton
-              className="styleUserProfile"
-              disableFocusRipple
-              disableRipple
-              onClick={(event) => fnProfileClickHandler(event)}
+              onClick={handleProfileClick}
+              sx={{
+                p: 0.5,
+                "&:hover": {
+                  backgroundColor: "#eae9ff !important",
+                },
+              }}
             >
-              <Stack
-                direction="row"
-                spacing={0}
-                justifyContent="center"
-                alignItems="center"
+              <Avatar
+                src={userInfo?.avatar}
+                alt={displayName}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  bgcolor: "#123db8",
+                  cursor: "pointer",
+                }}
               >
-                <HeaderButton
-                  sx={{
-                    padding: "0 !important",
-                    width: "max-content",
-                    // borderRadius: "25px",
-                    backgroundColor: "theme.pallete.background.default",
-                    border: "1px solid #e9ecef",
-                    textTransform: "none",
-                    height: 38,
-                  }}
-                  aria-haspopup="true"
-                >
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <CustomAvatar
-                      className={"wbAvatar wbMR8"}
-                      size="small"
-                      src={""}
-                      name={displayName}
-                      gutterBottom
-                      sx={{ height: 38 }}
-                    />
-                    <Typography
-                      className="header-user-role"
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      {getDisplayRole()}
-                    </Typography>
-                  </Stack>
-                </HeaderButton>
-              </Stack>
+                {displayName.split(" ").map((n) => n[0]).join("")}
+              </Avatar>
             </MuiIconButton>
           </Tooltip>
+          
+          <SystemHealthPopover
+            anchorEl={healthAnchorEl}
+            open={isHealthOpen}
+            onClose={handleHealthClose}
+          />
+
+          <NotificationsPopover
+            anchorEl={notificationsAnchorEl}
+            open={isNotificationsOpen}
+            onClose={handleNotificationsClose}
+          />
+
+          <UserProfilePopover
+            anchorEl={profileAnchorEl}
+            open={isProfileOpen}
+            onClose={handleProfileClose}
+          />
           {/* <Box display="flex" sx={{ marginRight: "-10px" }}>
             <HealthMonitor />
           </Box> */}
