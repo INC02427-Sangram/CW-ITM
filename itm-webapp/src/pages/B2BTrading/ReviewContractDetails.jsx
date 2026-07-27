@@ -40,15 +40,19 @@ const buildDisplayValues = (headerDetails = {}) => ({
   ITM_CTC_DOC_DATE: formatDate(headerDetails.ITM_CTC_DOC_DATE),
   ITM_CTC_VAL_FROM: formatDate(headerDetails.ITM_CTC_VAL_FROM),
   ITM_CTC_VAL_TO: formatDate(headerDetails.ITM_CTC_VAL_TO),
-  ITM_CTC_EXC_RATE_DATE: formatDate(headerDetails.ITM_CTC_EXC_RATE_DATE),
+  ITM_CTC_EXC_RATE_DATE: formatDate(headerDetails?.ITM_CTC_EXC_RATE_DATE),
+  ITM_CTC_CONTRACT_TYPE: headerDetails.ITM_CTC_CONTRACT_TYPE?.value || headerDetails.ITM_CTC_CONTRACT_TYPE,
+  ITM_CTC_PERSON: headerDetails.ITM_CTC_PERSON?.value || headerDetails.ITM_CTC_PERSON,
+  ITM_CTC_TAX_CODE: headerDetails.ITM_CTC_TAX_CODE?.value || headerDetails.ITM_CTC_TAX_CODE,
   ITM_CTC_PURCH_INCO: [
-    headerDetails.ITM_CTC_PURCH_INCO,
+    headerDetails.ITM_CTC_PURCH_INCO?.value || headerDetails.ITM_CTC_PURCH_INCO,
     headerDetails.ITM_CTC_PURCH_INCO_LOC,
   ]
     .filter(Boolean)
     .join(" - "),
+
   ITM_CTC_SALES_INCO: [
-    headerDetails.ITM_CTC_SALES_INCO,
+    headerDetails.ITM_CTC_SALES_INCO?.value || headerDetails.ITM_CTC_SALES_INCO,
     headerDetails.ITM_CTC_SALES_INCO_LOC,
   ]
     .filter(Boolean)

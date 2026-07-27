@@ -1,6 +1,6 @@
 {
-  "xsappname": "cw-iom-xsuaa",
-  "tenant-mode": "dedicated",
+  "xsappname": "cw-itm-xsuaa",
+  "tenant-mode": "shared",
   "description": "Security profile of called application",
   "scopes": [
     {

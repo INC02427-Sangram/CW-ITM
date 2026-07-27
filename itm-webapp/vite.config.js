@@ -22,13 +22,9 @@ export default defineConfig(() => {
     },
     "/IDMServices": {
       target:
-        "https://cw-caf-idm-services-v3.cfapps.eu10-004.hana.ondemand.com/",
+        "https://cw-caf-idm-services-v3.cfapps.eu10-004.hana.ondemand.com",
       changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/IDMServices/, "idm"),
-      secure: true,
-      headers: {
-        Authorization: `Bearer `,
-      },
+      rewrite: (path) => path.replace(/^\/IDMServices/, "/idm"),
     },
     "/WorkRuleEngineServices": {
       target: "https://cw-caf-idm-services.cfapps.eu10-004.hana.ondemand.com/",

@@ -334,6 +334,7 @@ const AddMaterial = forwardRef(
       ref,
       () => ({
         getValues: () => rows.map(({ editing, ...rest }) => rest),
+        getItems: () => rows.map(({ editing, ...rest }) => rest),
         reset: () => setRows([]),
         validate: () => !rows.some((row) => row.editing),
       }),

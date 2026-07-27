@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -21,7 +21,7 @@ import AddMaterial from "./AddMaterial";
 import ReviewContractDetails from "./ReviewContractDetails";
 import { ArrowBack } from "@cw/rds/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import { dummyContractData } from "../../dummydatas/dummydata";
+import requestOptions from "../../utils/fnServices/requestOptions";
 
 const MONTHS = [
   "Jan",
@@ -52,59 +52,31 @@ const toISODate = (value) => {
 
 // Maps the Contract Details page's shape back into the ITM_CTC_* fields the
 // generated step forms expect, so "Edit" can reopen this wizard pre-filled.
-// Fields the details page doesn't carry fall back to the default dummy header.
 const buildHeaderDetailsFromContractData = (contractData) => {
-  if (!contractData) return dummyContractData.headerDetails;
+  if (!contractData) return {};
+
   const [incoCode = "", ...incoLocParts] = String(
     contractData.incoterms || "",
   ).split(" - ");
   const incoLoc = incoLocParts.join(" - ").trim();
 
   return {
-    ...dummyContractData.headerDetails,
-    ITM_CTC_SUPPLIER:
-      contractData.supplier || dummyContractData.headerDetails.ITM_CTC_SUPPLIER,
-    ITM_CTC_DOC_DATE:
-      toISODate(contractData.documentDate) ||
-      dummyContractData.headerDetails.ITM_CTC_DOC_DATE,
-    ITM_CTC_VAL_FROM:
-      toISODate(contractData.validityFrom) ||
-      dummyContractData.headerDetails.ITM_CTC_VAL_FROM,
-    ITM_CTC_VAL_TO:
-      toISODate(contractData.validityTo) ||
-      dummyContractData.headerDetails.ITM_CTC_VAL_TO,
-    ITM_CTC_PERSON:
-      contractData.personResponsible ||
-      dummyContractData.headerDetails.ITM_CTC_PERSON,
-    ITM_CTC_PURCH_ORG:
-      contractData.purchasingOrganization ||
-      dummyContractData.headerDetails.ITM_CTC_PURCH_ORG,
-    ITM_CTC_SALES_ORG:
-      contractData.purchasingOrganization ||
-      dummyContractData.headerDetails.ITM_CTC_SALES_ORG,
-    ITM_CTC_PURCH_CUR:
-      contractData.currency ||
-      dummyContractData.headerDetails.ITM_CTC_PURCH_CUR,
-    ITM_CTC_SALES_CUR:
-      contractData.currency ||
-      dummyContractData.headerDetails.ITM_CTC_SALES_CUR,
-    ITM_CTC_PURCH_INCO:
-      incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO,
-    ITM_CTC_PURCH_INCO_LOC:
-      incoLoc || dummyContractData.headerDetails.ITM_CTC_PURCH_INCO_LOC,
-    ITM_CTC_SALES_INCO:
-      incoCode.trim() || dummyContractData.headerDetails.ITM_CTC_SALES_INCO,
-    ITM_CTC_SALES_INCO_LOC:
-      incoLoc || dummyContractData.headerDetails.ITM_CTC_SALES_INCO_LOC,
-    ITM_CTC_TERMS_OF_PAY:
-      contractData.paymentTerms ||
-      dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY,
-    ITM_CTC_TERMS_OF_PAY_SELL:
-      contractData.paymentTerms ||
-      dummyContractData.headerDetails.ITM_CTC_TERMS_OF_PAY_SELL,
-    ITM_CTC_EXC_RATE_TYPE:
-      contractData.exchangeRateType ||
-      dummyContractData.headerDetails.ITM_CTC_EXC_RATE_TYPE,
+    ITM_CTC_SUPPLIER: contractData.supplier || "",
+    ITM_CTC_DOC_DATE: toISODate(contractData.documentDate) || "",
+    ITM_CTC_VAL_FROM: toISODate(contractData.validityFrom) || "",
+    ITM_CTC_VAL_TO: toISODate(contractData.validityTo) || "",
+    ITM_CTC_PERSON: contractData.personResponsible || "",
+    ITM_CTC_PURCH_ORG: contractData.purchasingOrganization || "",
+    ITM_CTC_SALES_ORG: contractData.purchasingOrganization || "",
+    ITM_CTC_PURCH_CUR: contractData.currency || "",
+    ITM_CTC_SALES_CUR: contractData.currency || "",
+    ITM_CTC_PURCH_INCO: incoCode.trim() || "",
+    ITM_CTC_PURCH_INCO_LOC: incoLoc || "",
+    ITM_CTC_SALES_INCO: incoCode.trim() || "",
+    ITM_CTC_SALES_INCO_LOC: incoLoc || "",
+    ITM_CTC_TERMS_OF_PAY: contractData.paymentTerms || "",
+    ITM_CTC_TERMS_OF_PAY_SELL: contractData.paymentTerms || "",
+    ITM_CTC_EXC_RATE_TYPE: contractData.exchangeRateType || "",
   };
 };
 
@@ -179,12 +151,19 @@ export default function CreateB2BTradingContractPage() {
 
   const editContractData = location.state?.editContractData;
   const isEditMode = Boolean(editContractData);
-  const initialHeaderDetails = isEditMode
-    ? buildHeaderDetailsFromContractData(editContractData)
-    : dummyContractData.headerDetails;
-  const initialContractItems = editContractData?.items?.length
-    ? editContractData.items
-    : dummyContractData.contractItems;
+
+  // Centralized form data state - stores all form values across steps
+  const [formData, setFormData] = useState(() => {
+    if (isEditMode) {
+      return buildHeaderDetailsFromContractData(editContractData);
+    }
+    return {};
+  });
+
+  // Contract items state
+  const [contractItems, setContractItems] = useState(() => {
+    return editContractData?.items?.length ? editContractData.items : [];
+  });
 
   const computedSteps = steps.map((step, index) => ({
     ...step,
@@ -196,7 +175,33 @@ export default function CreateB2BTradingContractPage() {
           : "upcoming",
   }));
 
+  // Merges current form values into the formData state
+  const mergeFormData = (newData) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...newData,
+    }));
+  };
+
   const handleNext = () => {
+    // Capture form data from current step before moving forward
+    const data = formRef.current?.getValues ? formRef.current.getValues() : {};
+    const success =
+      activeStepLabel !== "Items" ? formRef.current.submit() : true;
+    if (!success) {
+      return; // Prevent moving to next step if validation fails
+    }
+    if (formRef.current?.getValues) {
+      const currentStepData = formRef.current.getValues();
+      mergeFormData(currentStepData);
+    }
+
+    // For Items step, capture the items
+    if (activeStepLabel === "Items" && formRef.current?.getItems) {
+      const items = formRef.current.getItems();
+      setContractItems(items);
+    }
+
     if (activeStep < steps.length - 1) {
       setActiveStep((prevStep) => prevStep + 1);
       return;
@@ -210,56 +215,72 @@ export default function CreateB2BTradingContractPage() {
   const activeStepLabel = steps[activeStep].label;
   const activePlaceholder = formPlaceholders[activeStepLabel];
 
+  const headerFooterFalse = {
+    showHeader: false,
+    showFooter: false,
+  };
+
   const stepContents = {
     Header: (formRef) => (
       <CreateB2BTradingContract
         ref={formRef}
-        initialData={initialHeaderDetails}
-        showFooter={true}
-        showHeader={false}
+        {...headerFooterFalse}
+        initialData={formData}
         columns={4}
+        requestOptions={requestOptions}
       />
     ),
     "Parties & Validity": (formRef) => (
       <CreateB2BTradingContract2
         ref={formRef}
-        initialData={initialHeaderDetails}
-        showFooter={false}
-        showHeader={false}
+        {...headerFooterFalse}
+        initialData={formData}
         columns={4}
+        requestOptions={requestOptions}
       />
     ),
     "Currency & Pricing": (formRef) => (
       <CreateB2BTradingContract3
         ref={formRef}
-        initialData={initialHeaderDetails}
-        showFooter={false}
-        showHeader={false}
+        {...headerFooterFalse}
+        initialData={formData}
         columns={4}
+        requestOptions={requestOptions}
       />
     ),
     "Exchange Rate": (formRef) => (
       <CreateB2BTradingContract4
         ref={formRef}
-        initialData={initialHeaderDetails}
-        showFooter={false}
-        showHeader={false}
+        {...headerFooterFalse}
+        initialData={formData}
         columns={4}
+        requestOptions={requestOptions}
       />
     ),
     Items: (formRef) => (
-      <AddMaterial ref={formRef} initialItems={initialContractItems} />
+      <AddMaterial ref={formRef} initialItems={contractItems} />
     ),
     "Review & Submit": (formRef) => (
       <ReviewContractDetails
-        headerDetails={initialHeaderDetails}
-        contractItems={initialContractItems}
+        headerDetails={formData}
+        contractItems={contractItems}
       />
     ),
   };
   const handleSubmit = () => {
-    const data = formRef.current.getValues();
-    console.log("Form submitted", data);
+    // Capture any final data from Review step
+    if (formRef.current?.getValues) {
+      const finalStepData = formRef.current.getValues();
+      mergeFormData(finalStepData);
+    }
+
+    // Prepare complete contract data for submission
+    const completeContractData = {
+      ...formData,
+      items: contractItems,
+    };
+    // TODO: Add API call to submit the contract data
+    // navigate to success page or back to list
   };
   return (
     <Box className="outermost-container">

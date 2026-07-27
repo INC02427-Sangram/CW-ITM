@@ -56,7 +56,12 @@ const isDateType = (dataType, controlName) =>
   !!controlName?.toLowerCase().includes('date');
 // Detect ISO date strings so FormField can render DatePicker even if metadata check misses
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}|$)/;
-const COLUMNS_OPTIONS = [2, 3];
+
+// Sanitize field names for CSS class names (kebab-case, no spaces or special chars)
+const sanitizeFieldName = (name) => {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+};
+
 // Field definitions embedded at code generation time — no runtime variant API calls needed
 const EMBEDDED_VARIANT_DATA = [
   {
@@ -916,91 +921,140 @@ const EMBEDDED_VARIANT_DATA = [
 ];
 
 // ─── Styles ─────────────────────────────────────────────────────────────────────
-const containerSx = { p: 3, maxWidth: '75rem', margin: '0 auto' };
 const headerSx = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 };
-const layoutToggleSx = { display: 'flex', gap: 1, alignItems: 'center' };
 const footerSx = { display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' };
 const headingStyle = { margin: 0 };
-const layoutLabelStyle = { fontSize: '0.875rem' };
-const btnBase = { 
-  padding: '0.25rem 0.75rem', 
-  border: '1px solid var(--grey-300)', 
-  borderRadius: '0.25rem', 
-  cursor: 'pointer',
-  fontSize: '0.875rem'
-};
-const btnActive = { ...btnBase, background: 'var(--primary-main)', color: 'var(--contrast-text)' };
-const btnInactive = { ...btnBase, background: 'var(--background-default)', color: 'var(--text-primary)' };
 const tableStyle = { width: '100%', borderCollapse: 'collapse' };
 const thStyle = { 
   textAlign: 'left', 
   padding: '0.75rem 1rem', 
   borderBottom: '2px solid var(--grey-300)', 
   backgroundColor: 'var(--primary-light)',
-  fontWeight: 600
+  fontWeight: 600,
+  position: 'sticky',
+  top: 0,
+  zIndex: 10
 };
 const thActionStyle = { ...thStyle, textAlign: 'center' };
 const tdStyle = { padding: '0.625rem 1rem', borderBottom: '1px solid var(--grey-300)' };
 const tdActionStyle = { ...tdStyle, textAlign: 'center' };
 const actionButtonsSx = { display: 'flex', gap: 0.5, justifyContent: 'center', alignItems: 'center' };
 // ─── ListView Component ──────────────────────────────────────────────────────────
-export const ListView = ({ data = [], columns = [], onEdit, onDelete, formatValue }) => {
+export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick, formatValue, selectable = false, onSelectionChange }) => {
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  
+  // Normalize data: handle both array and submit data format { fields: {...} }
+  const normalizedData = useMemo(() => {
+    if (!data) return [];
+    if (data.fields && typeof data.fields === 'object' && !Array.isArray(data.fields)) return [data];
+    if (Array.isArray(data)) return data;
+    return [];
+  }, [data]);
+  
+  // Auto-generate columns from first data entry if not provided
+  const effectiveColumns = useMemo(() => {
+    if (columns && columns.length > 0) return columns;
+    if (normalizedData.length === 0) return [];
+    const firstEntry = normalizedData[0];
+    // Detect submit data format (has fields property with field objects)
+    if (firstEntry.fields && typeof firstEntry.fields === 'object') {
+      const autoColumns = [];
+      Object.keys(firstEntry.fields).forEach((fieldName) => {
+        const field = firstEntry.fields[fieldName];
+        autoColumns.push({ fieldName: fieldName, label: field.label || fieldName, key: fieldName });
+      });
+      return autoColumns;
+    }
+    // For regular array data, auto-generate columns from object keys
+    const autoColumns = [];
+    Object.keys(firstEntry).forEach((key) => {
+      if (['variantFieldId', 'columnId', 'columnName', 'variantId', 'variantName', 'definitionId', 'fields', '_id', 'id'].includes(key)) return;
+      autoColumns.push({ fieldName: key, label: firstEntry[key]?.label || key, key: key });
+    });
+    return autoColumns;
+  }, [columns, normalizedData]);
+  
   const hasActions = onEdit || onDelete;
-  const columnCount = 1 + columns.length + (hasActions ? 1 : 0);
+  const hasCheckbox = selectable;
+  const columnCount = (hasCheckbox ? 1 : 0) + effectiveColumns.length + (hasActions ? 1 : 0);
+  
+  const handleSelectAll = useCallback((e) => {
+    if (e.target.checked) {
+      setSelectedRows(new Set(normalizedData.map((_, idx) => idx)));
+      if (onSelectionChange) onSelectionChange(normalizedData.map((_, idx) => idx));
+    } else {
+      setSelectedRows(new Set());
+      if (onSelectionChange) onSelectionChange([]);
+    }
+  }, [normalizedData, onSelectionChange]);
+  
+  const handleSelectRow = useCallback((index, checked) => {
+    setSelectedRows((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(index); else next.delete(index);
+      if (onSelectionChange) onSelectionChange(Array.from(next));
+      return next;
+    });
+  }, [onSelectionChange]);
 
   return (
-    <TableContainer sx={{ mt: 3 }}>
-      <table style={tableStyle}>
-        <thead>
+    <TableContainer sx={{ mt: 3 }} className="dynamic-form-table-container">
+      <table id="dynamic-form-list-view" className="dynamic-form-table" style={tableStyle}>
+        <thead className="dynamic-form-table-header">
           <tr>
-            <th style={thStyle}>#</th>
-            {columns.map((col) => (
-              <th key={col.fieldName || col.key} style={thStyle}>
-                {col.label || col.name}
+            {hasCheckbox && (
+              <th style={{ ...thStyle, width: '50px', textAlign: 'center' }} data-column-name="checkbox">
+                <input type="checkbox" checked={normalizedData.length > 0 && selectedRows.size === normalizedData.length} onChange={handleSelectAll} style={{ cursor: 'pointer' }} />
               </th>
-            ))}
-            {hasActions && <th style={thActionStyle}>Actions</th>}
+            )}
+            {effectiveColumns.map((col) => {
+              const fieldName = col.fieldName || col.key;
+              const sanitizedName = sanitizeFieldName(fieldName);
+              return <th key={fieldName} style={thStyle} data-column-name={sanitizedName}>{col.label || col.name}</th>;
+            })}
+            {hasActions && <th style={thActionStyle} data-column-name="actions">Actions</th>}
           </tr>
         </thead>
-        <tbody>
-          {(!data || data.length === 0) ? (
-            <tr>
-              <td colSpan={columnCount} style={{ ...tdStyle, textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                No records yet
-              </td>
-            </tr>
+        <tbody className="dynamic-form-table-body">
+          {(!normalizedData || normalizedData.length === 0) ? (
+            <tr><td colSpan={columnCount} style={{ ...tdStyle, textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>No records yet</td></tr>
           ) : (
-            data.map((entry, index) => (
-            <tr key={entry._id || entry.id || index}>
-              <td style={tdStyle}>{index + 1}</td>
-              {columns.map((col) => {
-                const fieldName = col.fieldName || col.key;
-                const value = entry[fieldName];
-                const displayValue = formatValue ? formatValue(col, value) : value;
-                return (
-                  <td key={fieldName} style={tdStyle}>
-                    {displayValue !== null && displayValue !== undefined ? String(displayValue) : ''}
-                  </td>
-                );
-              })}
-              {(onEdit || onDelete) && (
-                <td style={tdActionStyle}>
-                  <Box sx={actionButtonsSx}>
-                    {onEdit && (
-                      <IconButton onClick={() => onEdit(index)} size='small' title='Edit'>
-                        <Pencil />
-                      </IconButton>
-                    )}
-                    {onDelete && (
-                      <IconButton onClick={() => onDelete(index)} size='small' title='Delete' color='error'>
-                        <Trash />
-                      </IconButton>
-                    )}
-                  </Box>
-                </td>
-              )}
-            </tr>
-            ))
+            normalizedData.map((entry, index) => {
+              const entryId = entry._id || entry.id || entry.variantId || index;
+              const isSelected = selectedRows.has(index);
+              return (
+                <tr key={entryId} onClick={() => onRowClick && onRowClick(entry, index)} style={{ cursor: onRowClick ? 'pointer' : 'default', backgroundColor: isSelected ? 'var(--primary-light, #e3f2fd)' : 'transparent' }} data-row-index={index} data-entry-id={entryId} data-selected={isSelected}>
+                  {hasCheckbox && (
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      <input type="checkbox" checked={isSelected} onChange={(e) => { e.stopPropagation(); handleSelectRow(index, e.target.checked); }} onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }} />
+                    </td>
+                  )}
+                  {effectiveColumns.map((col) => {
+                    const fieldName = col.fieldName || col.key;
+                    const sanitizedName = sanitizeFieldName(fieldName);
+                    let value, displayValue;
+                    if (entry.fields && typeof entry.fields === 'object') {
+                      value = entry.fields[fieldName];
+                      displayValue = (value && typeof value === 'object' && !Array.isArray(value)) ? (value.value ?? value.key ?? value) : value;
+                    } else {
+                      value = entry[fieldName];
+                      displayValue = (value && typeof value === 'object' && !Array.isArray(value)) ? (value.value ?? value.key ?? value) : value;
+                    }
+                    if (formatValue) displayValue = formatValue(col, displayValue);
+                    const dataValueString = typeof displayValue === 'object' && displayValue !== null && displayValue.$$typeof ? (value?.value ?? value?.key ?? value ?? '') : (displayValue !== null && displayValue !== undefined ? String(displayValue) : '');
+                    return <td key={fieldName} style={tdStyle} data-field-name={sanitizedName} data-value={dataValueString}>{displayValue !== null && displayValue !== undefined ? displayValue : ''}</td>;
+                  })}
+                  {(onEdit || onDelete) && (
+                    <td style={tdActionStyle}>
+                      <Box sx={actionButtonsSx}>
+                        {onEdit && <IconButton onClick={(e) => { e.stopPropagation(); onEdit(index); }} size='small' title='Edit'><Pencil /></IconButton>}
+                        {onDelete && <IconButton onClick={(e) => { e.stopPropagation(); onDelete(index); }} size='small' title='Delete' color='error'><Trash /></IconButton>}
+                      </Box>
+                    </td>
+                  )}
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>
@@ -1097,13 +1151,15 @@ const EMPTY_ARR = [];
 const FormField = memo(({ field, value, onChange, options, error, readOnly }) => {
   const { controlName, dataType, label, fieldName, maxLength, propertyDto } = field;
   const { isMandatory, isEditable, isVisible, isLookup, isMultiSelect } = propertyDto || {};
+  const sanitizedFieldName = sanitizeFieldName(fieldName);
   if (!isVisible) return null;
 
   if (dataType === 'BOOLEAN') {
     return (
       <FormControlLabel
-        control={<Switch checked={!!value} onChange={(e) => onChange(fieldName, e.target.checked)} disabled={!isEditable || readOnly} />}
+        control={<Switch checked={!!value} onChange={(e) => onChange(fieldName, e.target.checked)} disabled={!isEditable || readOnly} inputProps={{ id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': value ? 'true' : 'false' }} />}
         label={label}
+        componentsProps={{ typography: { id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label } }}
       />
     );
   }
@@ -1130,9 +1186,12 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
         onChange={(_, newVal) => onChange(fieldName, newVal)}
         disabled={!isEditable || readOnly}
         multiple={!!isMultiSelect}
-        renderInput={(params) => (
-          <TextField {...params} label={label} required={!!isMandatory} error={!!error} helperText={error} size='medium' fullWidth name={fieldName} />
-        )}
+        renderInput={(params) => {
+          const selectedKey = selectedObj?.key || '';
+          return (
+            <TextField {...params} label={label} required={!!isMandatory} error={!!error} helperText={error} size='medium' fullWidth name={fieldName} InputLabelProps={{ sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }} inputProps={{ ...params.inputProps, id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': selectedKey }} />
+          );
+        }}
       />
     );
   }
@@ -1146,17 +1205,19 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
       <DatePicker
         key={fieldName} label={label} required={!!isMandatory} error={!!error} helperText={error || ''}
         value={dateValue} onChange={(v) => onChange(fieldName, v)} disabled={!isEditable || readOnly}
-        slotProps={{ textField: { size: 'medium', fullWidth: true, name: fieldName } }}
+        slotProps={{ textField: { size: 'medium', fullWidth: true, name: fieldName, InputLabelProps: { sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }, inputProps: { id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': dateValue ? dateValue.format('YYYY-MM-DD') : '' } } }}
       />
     );
   }
 
+  const currentValue = value ?? '';
   return (
     <TextField
-      label={label} value={value ?? ''}
+      label={label} value={currentValue}
       onChange={(e) => { const v = e.target.value; if (NUMERIC_TYPES.has(dataType) && maxLength && v.length > Number(maxLength)) return; onChange(fieldName, v); }}
       required={!!isMandatory} disabled={!isEditable || readOnly} type={NUMERIC_TYPES.has(dataType) ? 'number' : 'text'}
-      inputProps={{ maxLength: maxLength ? Number(maxLength) : undefined }}
+      inputProps={{ id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, maxLength: maxLength ? Number(maxLength) : undefined, 'data-value': currentValue }}
+      InputLabelProps={{ sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }}
       multiline={!NUMERIC_TYPES.has(dataType) && !!maxLength && Number(maxLength) > TEXTAREA_THRESHOLD}
       rows={!NUMERIC_TYPES.has(dataType) && !!maxLength && Number(maxLength) > TEXTAREA_THRESHOLD ? 4 : undefined}
       error={!!error} helperText={error} size='medium' fullWidth name={fieldName}
@@ -1165,10 +1226,19 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
 });
 
 // ─── Main Component ──────────────────────────────────────────────────────────────
-const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData, initialData, requestOptions, onSubmit, onReset, columns = 2, title, showHeader = true, showFooter = true, readOnly = false, view = 'both' }, ref) => {
+const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData, initialData, requestOptions, onSubmit, onReset, columns = 2, title, showHeader = true, showFooter = true, readOnly = false }, ref) => {
   const headers = requestOptions?.headers;
   const baseUrl = requestOptions?.baseUrl || '';
-
+  // Normalize initialData: handle both raw fields object and submit data format
+  const normalizedInitialData = useMemo(() => {
+    if (!initialData) return null;
+    // If initialData has a 'fields' property (submit format), extract fields
+    if (initialData.fields && typeof initialData.fields === 'object' && !Array.isArray(initialData.fields)) {
+      return initialData.fields;
+    }
+    // Otherwise use initialData as-is
+    return initialData;
+  }, [initialData]);
   // Variant data is embedded — initialize immediately, no runtime fetch needed
   const [variantData, setVariantData] = useState(() =>
     externalVariantData ?? (EMBEDDED_VARIANT_DATA.length === 1 ? EMBEDDED_VARIANT_DATA[0] : EMBEDDED_VARIANT_DATA)
@@ -1198,24 +1268,21 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
     return m;
   }, [fields]);
 
-  const { lookupOptions, onDropdownChange, lookupMetaRef } = useLookups(fields, headers, baseUrl, readOnly || view === 'list');
+  const { lookupOptions, onDropdownChange, lookupMetaRef } = useLookups(fields, headers, baseUrl, readOnly);
   const onDropdownChangeRef = useRef(onDropdownChange);
   useEffect(() => { onDropdownChangeRef.current = onDropdownChange; }, [onDropdownChange]);
 
   // Pre-populate from initialData so DatePicker receives the correct value on the very first render
   const [formValues, setFormValues] = useState(() => {
-    if (!initialData) return {};
+    if (!normalizedInitialData) return {};
     const init = {};
-    Object.entries(initialData).forEach(([k, v]) => {
+    Object.entries(normalizedInitialData).forEach(([k, v]) => {
       if (typeof v === 'string' && v && ISO_DATE_RE.test(v)) v = dayjs(v);
       init[k] = v;
     });
     return init;
   });
   const [validationErrors, setValidationErrors] = useState({});
-  const [viewMode, setViewMode] = useState(view === 'both' ? 'form' : view); // 'form' or 'list'
-  const [submittedEntries, setSubmittedEntries] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
   const processedInitialDataRef = useRef(false);
   const isAutoFillingRef = useRef(false);
 
@@ -1225,8 +1292,18 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
     setFormValues(() => {
       const init = {};
       fields.forEach((f) => {
-        if (initialData && f.fieldName in initialData) {
-          let v = initialData[f.fieldName];
+        if (normalizedInitialData && f.fieldName in normalizedInitialData) {
+          let v = normalizedInitialData[f.fieldName];
+          // Handle submit data format with metadata (extract key or value)
+          if (v && typeof v === 'object' && !dayjs.isDayjs(v)) {
+            // For lookup fields, keep the { key, value } object
+            if (f.propertyDto?.isLookup && 'key' in v && 'value' in v) {
+              v = { key: v.key, value: v.value };
+            } else {
+              // For non-lookup fields, extract the value
+              v = v.value ?? v.key ?? v;
+            }
+          }
           if (typeof v === 'string' && v && (isDateType(f.dataType, f.controlName) || ISO_DATE_RE.test(v))) v = dayjs(v);
           init[f.fieldName] = v;
         } else {
@@ -1236,29 +1313,39 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
       });
       return init;
     });
-  }, [fields, initialData]);
+  }, [fields, normalizedInitialData]);
 
   // Sync initialData changes into form
   useEffect(() => {
-    if (!initialData) return;
+    if (!normalizedInitialData) return;
     setFormValues((prev) => {
       const updated = { ...prev };
-      Object.keys(initialData).forEach((fn) => {
+      Object.keys(normalizedInitialData).forEach((fn) => {
         const field = fieldsByName[fn];
         if (!field) return;
-        let v = initialData[fn];
+        let v = normalizedInitialData[fn];
+        // Handle submit data format with metadata (extract key or value)
+        if (v && typeof v === 'object' && !dayjs.isDayjs(v)) {
+          // For lookup fields, keep the { key, value } object
+          if (field.propertyDto?.isLookup && 'key' in v && 'value' in v) {
+            v = { key: v.key, value: v.value };
+          } else {
+            // For non-lookup fields, extract the value
+            v = v.value ?? v.key ?? v;
+          }
+        }
         if (typeof v === 'string' && v && (isDateType(field.dataType, field.controlName) || ISO_DATE_RE.test(v))) v = dayjs(v);
         updated[fn] = v;
       });
       return updated;
     });
     processedInitialDataRef.current = false;
-  }, [initialData, fieldsByName]);
+  }, [normalizedInitialData, fieldsByName]);
 
   // Auto-fill dependent lookups when initialData is provided
   useEffect(() => {
-    if (readOnly || !initialData || !headers || processedInitialDataRef.current || fields.length === 0) return;
-    const lookupFields = fields.filter((f) => f.propertyDto?.isLookup && initialData[f.fieldName]);
+    if (readOnly || !normalizedInitialData || !headers || processedInitialDataRef.current || fields.length === 0) return;
+    const lookupFields = fields.filter((f) => f.propertyDto?.isLookup && normalizedInitialData[f.fieldName]);
     if (lookupFields.length === 0) { processedInitialDataRef.current = true; return; }
 
     const fill = async () => {
@@ -1277,8 +1364,8 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
         if (processedInitialDataRef.current) return;
         const roots = lookupFields.filter((f) => !f.propertyDto?.isDependent);
         const deps  = lookupFields.filter((f) =>  f.propertyDto?.isDependent);
-        for (const f of roots) if (initialData[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, initialData[f.fieldName]);
-        for (const f of deps)  if (initialData[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, initialData[f.fieldName]);
+        for (const f of roots) if (normalizedInitialData[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, normalizedInitialData[f.fieldName]);
+        for (const f of deps)  if (normalizedInitialData[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, normalizedInitialData[f.fieldName]);
         processedInitialDataRef.current = true;
       } finally {
         isAutoFillingRef.current = false;
@@ -1295,8 +1382,14 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
       const v = formValues[fieldName];
       if (v === null || v === undefined || v === '' || (typeof v === 'string' && !v.trim())) {
         errors[fieldName] = `${label} is required`;
-      } else if (NUMERIC_TYPES.has(dataType) && isNaN(Number(v))) {
-        errors[fieldName] = `${label} must be a valid number`;
+      } else if (NUMERIC_TYPES.has(dataType)) {
+        // For lookup fields, extract key or value property before validation
+        const valueToCheck = (typeof v === 'object' && v !== null && !dayjs.isDayjs(v))
+          ? (v.key ?? v.value)
+          : v;
+        if (isNaN(Number(valueToCheck))) {
+          errors[fieldName] = `${label} must be a valid number`;
+        }
       }
     });
     return errors;
@@ -1314,13 +1407,21 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
   }, [fields, onReset]);
 
   const handleChange = useCallback((fieldName, value) => {
-    // Guard: only extract .value from plain option objects (e.g. Autocomplete), NOT from dayjs instances
-    const raw = (value !== null && value !== undefined && typeof value === 'object' && !dayjs.isDayjs(value) && 'value' in value)
-      ? value.value
-      : (value ?? '');
+    const field = fieldsByName[fieldName];
+    let raw;
+    // For lookup fields, preserve the entire { key, value } object
+    if (field?.propertyDto?.isLookup && value !== null && value !== undefined && typeof value === 'object' && !dayjs.isDayjs(value) && 'key' in value && 'value' in value) {
+      raw = { key: value.key, value: value.value };
+    }
+    // For non-lookup fields or other cases, extract value or use as-is
+    else if (value !== null && value !== undefined && typeof value === 'object' && !dayjs.isDayjs(value) && 'value' in value) {
+      raw = value.value;
+    }
+    else {
+      raw = value ?? '';
+    }
     setFormValues((prev) => ({ ...prev, [fieldName]: raw }));
     if (validationErrors[fieldName]) setValidationErrors((prev) => { const n = { ...prev }; delete n[fieldName]; return n; });
-    const field = fieldsByName[fieldName];
     if (field?.propertyDto?.isLookup && raw && !isAutoFillingRef.current) onDropdownChange(fieldName, raw);
   }, [fieldsByName, onDropdownChange, validationErrors]);
 
@@ -1335,103 +1436,105 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
     }
     setValidationErrors({});
     
-    // Add to submitted entries list
-    const entry = { ...formValues, _id: Date.now() };
-    if (editingIndex !== null) {
-      setSubmittedEntries((prev) => {
-        const updated = [...prev];
-        updated[editingIndex] = entry;
-        return updated;
-      });
-      setEditingIndex(null);
-    } else {
-      setSubmittedEntries((prev) => [...prev, entry]);
-    }
+    // Build metadata-enriched payload
+    const enrichedData = {
+      variantId: variantData?.variantId || '',
+      variantName: variantData?.variantName || '',
+      definitionId: variantData?.definitionId || '',
+      fields: {}
+    };
     
-    // Reset form
-    handleReset();
+    fields.forEach((field) => {
+      const fieldValue = formValues[field.fieldName];
+      const isLookupField = field.propertyDto?.isLookup;
+      
+      // For lookup fields, extract both key and value if available
+      if (isLookupField && fieldValue && typeof fieldValue === 'object' && 'key' in fieldValue) {
+        enrichedData.fields[field.fieldName] = {
+          variantFieldId: field.variantFieldId || '',
+          columnId: field.columnId || '',
+          columnName: field.columnName || '',
+          fieldName: field.fieldName || '',
+          label: field.label || '',
+          key: fieldValue.key ?? '',
+          value: fieldValue.value ?? ''
+        };
+      } else {
+        // For non-lookup fields or when value is not an object
+        enrichedData.fields[field.fieldName] = {
+          variantFieldId: field.variantFieldId || '',
+          columnId: field.columnId || '',
+          columnName: field.columnName || '',
+          fieldName: field.fieldName || '',
+          label: field.label || '',
+          key: fieldValue ?? '',
+          value: fieldValue ?? ''
+        };
+      }
+    });
     
-    // Switch to list view
-    if(view === 'both') setViewMode('list');
-    
-    // Call custom onSubmit if provided
-    if (onSubmit) onSubmit(formValues);
-    
+    // Call custom onSubmit if provided with enriched data
+    if (onSubmit) onSubmit(enrichedData);
+
     return true;
-  }, [formValues, validateForm, editingIndex, handleReset, onSubmit]);
+  }, [formValues, validateForm, handleReset, onSubmit, fields, variantData]);
 
   useImperativeHandle(ref, () => ({
     validate: () => { const e = validateForm(); if (Object.keys(e).length) { setValidationErrors(e); return false; } return true; },
-    submit: () => handleSubmit(null),
+    submit: () => {
+      const errors = validateForm();
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        const el = document.querySelector(`[name='${Object.keys(errors)[0]}']`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+      setValidationErrors({});
+      
+      // Build enriched data with metadata (same as handleSubmit)
+      const enrichedData = {
+        variantId: variantData?.variantId || '',
+        variantName: variantData?.variantName || '',
+        definitionId: variantData?.definitionId || '',
+        fields: {}
+      };
+      
+      fields.forEach((field) => {
+        const fieldValue = formValues[field.fieldName];
+        const isLookupField = field.propertyDto?.isLookup;
+        
+        // For lookup fields, extract both key and value if available
+        if (isLookupField && fieldValue && typeof fieldValue === 'object' && 'key' in fieldValue) {
+          enrichedData.fields[field.fieldName] = {
+            variantFieldId: field.variantFieldId || '',
+            columnId: field.columnId || '',
+            columnName: field.columnName || '',
+            fieldName: field.fieldName || '',
+            label: field.label || '',
+            key: fieldValue.key ?? '',
+            value: fieldValue.value ?? ''
+          };
+        } else {
+          // For non-lookup fields, key and value are the same
+          enrichedData.fields[field.fieldName] = {
+            variantFieldId: field.variantFieldId || '',
+            columnId: field.columnId || '',
+            columnName: field.columnName || '',
+            fieldName: field.fieldName || '',
+            label: field.label || '',
+            key: fieldValue ?? '',
+            value: fieldValue ?? ''
+          };
+        }
+      });
+      
+      if (onSubmit) onSubmit(enrichedData);
+      return true;
+    },
     reset: handleReset,
     getValues: () => formValues,
     setValues: (vals) => setFormValues((prev) => ({ ...prev, ...vals })),
-  }), [formValues, validateForm, handleReset, handleSubmit]);
-
-  // Handle edit from list view - process lookups like initialData
-  const handleEdit = useCallback(async (index) => {
-    // Copy entry and restore date strings as dayjs objects for DatePicker
-    const entry = { ...submittedEntries[index] };
-    fields.forEach((f) => {
-      if (isDateType(f.dataType, f.controlName) && typeof entry[f.fieldName] === 'string' && entry[f.fieldName]) {
-        entry[f.fieldName] = dayjs(entry[f.fieldName]);
-      }
-    });
-    setFormValues(entry);
-    setEditingIndex(index);
-    setViewMode('form');
-    
-    // Process dependent lookups if not in readOnly mode and headers available
-    if (!readOnly && headers && fields.length > 0) {
-      const lookupFields = fields.filter((f) => f.propertyDto?.isLookup && entry[f.fieldName]);
-      if (lookupFields.length > 0) {
-        isAutoFillingRef.current = true;
-        try {
-          // Wait for lookup metadata to be ready
-          await new Promise((resolve) => {
-            const t0 = Date.now();
-            const check = () => {
-              if (lookupFields.every((f) => lookupMetaRef.current[f.fieldName])) return resolve(true);
-              if (Date.now() - t0 > 10000) return resolve(false);
-              setTimeout(check, 50);
-            };
-            check();
-          });
-          
-          // Process lookups in order: root lookups first, then dependent ones
-          const roots = lookupFields.filter((f) => !f.propertyDto?.isDependent);
-          const deps = lookupFields.filter((f) => f.propertyDto?.isDependent);
-          for (const f of roots) if (entry[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, entry[f.fieldName]);
-          for (const f of deps) if (entry[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, entry[f.fieldName]);
-        } finally {
-          isAutoFillingRef.current = false;
-        }
-      }
-    }
-  }, [submittedEntries, readOnly, headers, fields]);
-
-  // Handle delete from list view
-  const handleDelete = useCallback((index) => {
-    setSubmittedEntries((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
-  // Format value for display in list
-  const formatDisplayValue = useCallback((field, value) => {
-    if (value === null || value === undefined || value === '') return '-';
-    const { dataType, controlName, propertyDto } = field;
-    if (dataType === 'BOOLEAN') return value ? 'Yes' : 'No';
-    if (propertyDto?.isLookup) {
-      const options = lookupOptions[field.fieldName] || [];
-      const obj = typeof value === 'string' && value
-        ? options.find((o) => o.value === value || o.key === value)
-        : value;
-      return obj?.value ?? obj?.key ?? value;
-    }
-    if ((isDateType(dataType, controlName) || dayjs.isDayjs(value)) && value) {
-      return value?.format ? value.format('DD MMM YYYY') : String(value);
-    }
-    return String(value);
-  }, [lookupOptions]);
+  }), [formValues, validateForm, handleReset, onSubmit, fields, variantData]);
 
   const gridSize = useMemo(() => {
     const n = columns || 2;
@@ -1442,67 +1545,38 @@ const CreateB2BTradingContract3 = forwardRef(({ variantData: externalVariantData
   if (!variantData || fields.length === 0) return null;
 
   return (
-    <Box sx={containerSx}>
+    <Box>
       {/* Header */}
       {showHeader && (
         <Box sx={headerSx}>
           <h2 style={headingStyle}>{title || 'Dynamic Form'}</h2>
-          <Box sx={layoutToggleSx}>
-            {!readOnly && view === 'both' && (
-              <>
-                <span style={layoutLabelStyle}>View:</span>
-                <button type='button' onClick={() => setViewMode('form')} style={viewMode === 'form' ? btnActive : btnInactive}>Form</button>
-                <button type='button' onClick={() => setViewMode('list')} style={viewMode === 'list' ? btnActive : btnInactive}>List ({submittedEntries.length})</button>
-              </>
-            )}
-          </Box>
+
         </Box>
       )}
 
-      {/* Form View */}
-      {(view === 'form' || view === 'both') && viewMode === 'form' && (
-        <form onSubmit={handleSubmit} noValidate>
-          <Grid container spacing={2}>
-            {fields.map((field) => (
-              <Grid item {...gridSize} key={field.variantFieldId || field.fieldName}>
-                <FormField
-                  field={field}
-                  value={formValues[field.fieldName] ?? ''}
-                  onChange={handleChange}
-                  options={lookupOptions[field.fieldName] || EMPTY_ARR}
-                  error={validationErrors[field.fieldName]}
-                  readOnly={readOnly}
-                />
-              </Grid>
-            ))}
-          </Grid>
-          {showFooter && !readOnly && (
-            <Box sx={footerSx}>
-              <Button variant='outlined' onClick={() => { handleReset(); setEditingIndex(null); }} type='button'>{editingIndex !== null ? 'Cancel' : 'Reset'}</Button>
-              <Button variant='contained' type='submit'>{editingIndex !== null ? 'Update' : 'Submit'}</Button>
-            </Box>
-          )}
-        </form>
-      )}
-
-      {/* List View */}
-      {(view === 'list' || view === 'both') && viewMode === 'list' && (
-        <Box>
-          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant='h6'>Total Entries: {submittedEntries.length}</Typography>
-            {view === 'both' && (
-              <Button variant='contained' onClick={() => setViewMode('form')}>Add New Entry</Button>
-            )}
+      {/* Form */}
+      <form onSubmit={handleSubmit} noValidate>
+        <Grid container spacing={2}>
+          {fields.map((field) => (
+            <Grid item {...gridSize} key={field.variantFieldId || field.fieldName}>
+              <FormField
+                field={field}
+                value={formValues[field.fieldName] ?? ''}
+                onChange={handleChange}
+                options={lookupOptions[field.fieldName] || EMPTY_ARR}
+                error={validationErrors[field.fieldName]}
+                readOnly={readOnly}
+              />
+            </Grid>
+          ))}
+        </Grid>
+        {showFooter && !readOnly && (
+          <Box sx={footerSx}>
+            <Button variant='outlined' onClick={handleReset} type='button'>Reset</Button>
+            <Button variant='contained' type='submit'>Submit</Button>
           </Box>
-          <ListView 
-            data={submittedEntries}
-            columns={fields.filter(f => f.propertyDto?.isVisible !== false)}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            formatValue={formatDisplayValue}
-          />
-        </Box>
-      )}
+        )}
+      </form>
     </Box>
   );
 });

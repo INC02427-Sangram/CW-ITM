@@ -1,6 +1,6 @@
 {
-  "short_name": "IOM",
-  "name": "Intelligent Order Management",
+  "short_name": "ITM",
+  "name": "Intelligent Trade Management",
   "icons": [
     {
       "src": "favicon.ico",
@@ -23,9 +23,9 @@
   "theme_color": "#000000",
   "background_color": "#ffffff",
   "sap.app": {
-    "id": "CW_IOM",
+    "id": "cw_itm_ui",
     "applicationVersion": {
-      "version": "1.1.0"
+      "version": "1.0.0"
     }
   }
 }
