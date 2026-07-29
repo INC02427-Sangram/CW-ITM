@@ -22,6 +22,7 @@ import ReviewContractDetails from "./ReviewContractDetails";
 import { ArrowBack } from "@cw/rds/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import requestOptions from "../../utils/fnServices/requestOptions";
+import { data } from "../../dummydatas/intitialDummy";
 
 const MONTHS = [
   "Jan",
@@ -175,6 +176,10 @@ export default function CreateB2BTradingContractPage() {
           : "upcoming",
   }));
 
+  useEffect(() => {
+    console.log("Form Data Updated:", formData);
+  }, [activeStep, formData, contractItems]);
+
   // Merges current form values into the formData state
   const mergeFormData = (newData) => {
     setFormData((prevData) => ({
@@ -186,6 +191,7 @@ export default function CreateB2BTradingContractPage() {
   const handleNext = () => {
     // Capture form data from current step before moving forward
     const data = formRef.current?.getValues ? formRef.current.getValues() : {};
+
     const success =
       activeStepLabel !== "Items" ? formRef.current.submit() : true;
     if (!success) {
@@ -225,7 +231,7 @@ export default function CreateB2BTradingContractPage() {
       <CreateB2BTradingContract
         ref={formRef}
         {...headerFooterFalse}
-        initialData={formData}
+        initialData={data}
         columns={4}
         requestOptions={requestOptions}
       />
@@ -234,7 +240,7 @@ export default function CreateB2BTradingContractPage() {
       <CreateB2BTradingContract2
         ref={formRef}
         {...headerFooterFalse}
-        initialData={formData}
+        initialData={data}
         columns={4}
         requestOptions={requestOptions}
       />
@@ -243,7 +249,7 @@ export default function CreateB2BTradingContractPage() {
       <CreateB2BTradingContract3
         ref={formRef}
         {...headerFooterFalse}
-        initialData={formData}
+        initialData={data}
         columns={4}
         requestOptions={requestOptions}
       />
@@ -252,17 +258,15 @@ export default function CreateB2BTradingContractPage() {
       <CreateB2BTradingContract4
         ref={formRef}
         {...headerFooterFalse}
-        initialData={formData}
+        initialData={data}
         columns={4}
         requestOptions={requestOptions}
       />
     ),
-    Items: (formRef) => (
-      <AddMaterial ref={formRef} initialItems={contractItems} />
-    ),
+    Items: (formRef) => <AddMaterial ref={formRef} initialItems={data} />,
     "Review & Submit": (formRef) => (
       <ReviewContractDetails
-        headerDetails={formData}
+        headerDetails={data}
         contractItems={contractItems}
       />
     ),
