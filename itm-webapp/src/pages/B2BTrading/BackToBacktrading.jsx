@@ -9,6 +9,9 @@ import ReusableDataGrid from "../../components/Common/ReusableDataGrid";
 import { Add, ViewIcon } from "@cw/rds/icons";
 import { dummyTableData } from "../../dummydatas/dummydata";
 import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
+import FilterAccordian from "../../components/Common/FilterAccordian";
+import B2BTradingFilter from "../../cw-generated-forms/B2BTradingFilter";
+import requestOptions from "../../utils/fnServices/requestOptions";
 
 const STATUS_STYLES = {
   Active: { color: "#1e7d32", backgroundColor: "#e8f5e9" },
@@ -96,7 +99,15 @@ export default function BackToBacktrading() {
 
   const [createContractOpen, setCreateContractOpen] = useState(false);
   const [contractData, setContractData] = useState(null);
+  const filterRef = useRef();
 
+  const handleClear = () => {
+    filterRef.current?.reset();
+  };
+  const handleSearch = () => {
+    const success = filterRef.current?.submit();
+    console.log(filterRef.current.getValues());
+  };
   // Dashboard view component
   const DashboardView = () => (
     <Box
@@ -148,6 +159,22 @@ export default function BackToBacktrading() {
                 />
               </Box>
             ))}
+          </Box>
+          <Box display="flex" gap={2} flexWrap={"wrap"}>
+            <FilterAccordian
+              title="Filter B2B Contracts"
+              onSearch={handleSearch}
+              onClear={handleClear}
+              filterFieldsComponent={
+                <B2BTradingFilter
+                  ref={filterRef}
+                  columns={4}
+                  showHeader={false}
+                  showFooter={false}
+                  requestOptions={requestOptions}
+                />
+              }
+            />
           </Box>
           <Box sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}>
             <ReusableDataGrid
