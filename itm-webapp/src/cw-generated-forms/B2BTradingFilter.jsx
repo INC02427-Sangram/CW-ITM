@@ -609,28 +609,28 @@ const EMBEDDED_VARIANT_DATA = [
         "lookupRepresentation": null
       },
       {
-        "variantFieldId": "d4e3894fe86e42afbdd8af4227db2946",
+        "variantFieldId": "bc77e899623647a190a8809f88ec92d6",
         "tableId": null,
         "schemaId": null,
         "isKey": null,
-        "columnId": "a05ee962-a1ab-4991-916f-327c90ae1c21",
-        "columnName": "ITM_CTC_DOC_DATE",
-        "label": "Contract Date",
-        "description": "Document Date",
-        "maxLength": "15",
-        "dataType": "DATE",
-        "technicalDataType": "DATE",
-        "controlName": "Date",
-        "fieldName": "ITM_CTC_DOC_DATE",
+        "columnId": "fb585ebc-9365-4aa8-b109-b38271bbc1af",
+        "columnName": "ITM_TRADING_STATUS",
+        "label": "Trading Contract Status",
+        "description": "Trading Contract Status",
+        "maxLength": "20",
+        "dataType": "NVARCHAR",
+        "technicalDataType": "NVARCHAR",
+        "controlName": "Input",
+        "fieldName": "ITM_TRADING_STATUS",
         "propertyDto": {
           "isMultiSelect": null,
           "isEditable": true,
-          "isMandatory": true,
+          "isMandatory": false,
           "isVisible": true,
           "isKey": null,
           "sequence": 8,
           "isHeader": null,
-          "isLookup": false,
+          "isLookup": true,
           "isSearchParam": null,
           "lookupType": "",
           "lookupId": "",
@@ -682,7 +682,7 @@ const EMBEDDED_VARIANT_DATA = [
         "longDescription": null,
         "odataFieldDescription": null,
         "maxSequenceValue": null,
-        "aliasName": "ITM_CTC_DOC_DATE",
+        "aliasName": "ITM_TRADING_STATUS",
         "lookupRepresentation": null
       }
     ]
@@ -767,7 +767,7 @@ export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick
   }, [onSelectionChange]);
 
   return (
-    <TableContainer sx={{ mt: 1 }} className="dynamic-form-table-container">
+    <TableContainer sx={{ mt: 1,borderRadius: 2 }} className="dynamic-form-table-container">
       <table id="dynamic-form-list-view" className="dynamic-form-table" style={tableStyle}>
         <thead className="dynamic-form-table-header">
           <tr>
