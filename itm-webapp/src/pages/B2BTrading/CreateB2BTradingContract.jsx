@@ -13,16 +13,16 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import ReusableTypography from "../../components/Common/ReusableTypography";
-import CreateB2BTradingContract from "../../cw-generated-forms/CreateB2BTradingContract";
-import CreateB2BTradingContract2 from "../../cw-generated-forms/CreateB2BTradingContract2";
-import CreateB2BTradingContract3 from "../../cw-generated-forms/CreateB2BTradingContract3";
-import CreateB2BTradingContract4 from "../../cw-generated-forms/CreateB2BTradingContract4";
 import AddMaterial from "./AddMaterial";
 import ReviewContractDetails from "./ReviewContractDetails";
 import { ArrowBack } from "@cw/rds/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import requestOptions from "../../utils/fnServices/requestOptions";
 import { data } from "../../dummydatas/intitialDummy";
+import CTCB2BHeader from "../../cw-generated-forms/CTCB2BHeader";
+import CTCB2BExchangeRate from "../../cw-generated-forms/CTCB2BExchangeRate";
+import CTCB2BCustomerSupplier from "../../cw-generated-forms/CTCB2BCustomerSupplier";
+import CTCB2BCurrencyPricing from "../../cw-generated-forms/CTCB2BCurrencyPricing";
 
 const MONTHS = [
   "Jan",
@@ -228,7 +228,7 @@ export default function CreateB2BTradingContractPage() {
 
   const stepContents = {
     Header: (formRef) => (
-      <CreateB2BTradingContract
+      <CTCB2BHeader
         ref={formRef}
         {...headerFooterFalse}
         initialData={data}
@@ -237,7 +237,7 @@ export default function CreateB2BTradingContractPage() {
       />
     ),
     "Parties & Validity": (formRef) => (
-      <CreateB2BTradingContract2
+      <CTCB2BCustomerSupplier
         ref={formRef}
         {...headerFooterFalse}
         initialData={data}
@@ -246,7 +246,7 @@ export default function CreateB2BTradingContractPage() {
       />
     ),
     "Currency & Pricing": (formRef) => (
-      <CreateB2BTradingContract3
+      <CTCB2BCurrencyPricing
         ref={formRef}
         {...headerFooterFalse}
         initialData={data}
@@ -255,7 +255,7 @@ export default function CreateB2BTradingContractPage() {
       />
     ),
     "Exchange Rate": (formRef) => (
-      <CreateB2BTradingContract4
+      <CTCB2BExchangeRate
         ref={formRef}
         {...headerFooterFalse}
         initialData={data}
