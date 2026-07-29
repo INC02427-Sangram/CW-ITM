@@ -1,5 +1,5 @@
 /**
- * CreateB2BTradingContract - Generated Form Component
+ * CTCB2BHeader - Generated Form Component
  *
  * Variant field definitions are embedded at code generation time.
  * Lookups (dropdowns) are still fetched at runtime — requestOptions with Authorization header required.
@@ -24,14 +24,14 @@
  *       rewrite: (p) => p.replace(/^\/IDMServices/, '/idm') } } }
  *
  * USAGE:
- *   <CreateB2BTradingContract
+ *   <CTCB2BHeader
  *     requestOptions={{ headers: { Authorization: 'Bearer TOKEN' } }}
  *     onSubmit={(data) => console.log(data)}
  *     view="both"  // 'form' | 'list' | 'both' (default: 'both')
  *   />
  *
  *   // Pre-fill fields:
- *   <CreateB2BTradingContract
+ *   <CTCB2BHeader
  *     initialData={{ FIELD_NAME: 'value' }}
  *     requestOptions={{ headers: { Authorization: 'Bearer TOKEN' } }}
  *   />
@@ -66,163 +66,9 @@ const sanitizeFieldName = (name) => {
 const EMBEDDED_VARIANT_DATA = [
   {
     "variantId": "9c58dfd3dd004aada6702449f83c7955",
-    "variantName": "Create B2B Trading Contract",
+    "variantName": "CTC B2B Header",
     "definitionId": "IWM",
     "data": [
-      {
-        "variantFieldId": "ca4bf61c3955488ebea3ab0d9dd3ced8",
-        "tableId": null,
-        "schemaId": null,
-        "isKey": null,
-        "columnId": "3659dcc6-7dea-4d3f-a317-e3b54ea9f143",
-        "columnName": "ITM_CTC_CLIENT",
-        "label": "Client Name",
-        "description": "Client Name",
-        "maxLength": "100",
-        "dataType": "NVARCHAR",
-        "technicalDataType": "NVARCHAR",
-        "controlName": "Input",
-        "fieldName": "ITM_CTC_CLIENT",
-        "propertyDto": {
-          "isMultiSelect": null,
-          "isEditable": true,
-          "isMandatory": true,
-          "isVisible": true,
-          "isKey": null,
-          "sequence": 1,
-          "isHeader": null,
-          "isLookup": true,
-          "isSearchParam": null,
-          "lookupType": "VL",
-          "lookupId": "7809aea5de2a4e9986e6959ea56b1acd",
-          "businessType": "C",
-          "isDefaulted": false,
-          "defaultValue": null,
-          "defaultValueText": null,
-          "isDependent": false,
-          "operator": null,
-          "variableKeySeq": null,
-          "isOperatorColumn": null,
-          "isVariableKey": null,
-          "isGlobalFilterApplied": null,
-          "isGlobalFilterEditable": true,
-          "isGlobalSortEditable": true,
-          "isRuleBasedParam": null,
-          "isPricingField": null,
-          "isPinned": null,
-          "isEditableOnSearch": null,
-          "isEditableOnUpdate": null,
-          "isEditableOnExport": null,
-          "isVisibleOnExport": null,
-          "isVisibleOnCustomVariantCreation": null,
-          "isMandatoryOnCustomVariantCreation": null,
-          "defaultOperator": null,
-          "isGlobalSortApplied": null,
-          "isAutoFill": false,
-          "isLink": null,
-          "groupBy": null,
-          "groupBySequence": null,
-          "is_restricted_mandatory": null,
-          "isApproval": null,
-          "isAutoSequence": null,
-          "columnSign": null,
-          "valueType": null,
-          "roundingDefinition": null,
-          "isSource": null,
-          "destinationField": null,
-          "colourCode": null,
-          "isExclusive": null,
-          "exclusiveWith": null,
-          "colInfo": null,
-          "conditionalRequiredFields": null,
-          "isfilterable": null
-        },
-        "sortDto": null,
-        "filterDto": null,
-        "shortDescription": null,
-        "longDescription": null,
-        "odataFieldDescription": null,
-        "maxSequenceValue": null,
-        "aliasName": "ITM_CTC_CLIENT",
-        "lookupRepresentation": null
-      },
-      {
-        "variantFieldId": "668742950f684a17a3ff7b498ede3dc0",
-        "tableId": null,
-        "schemaId": null,
-        "isKey": null,
-        "columnId": "b95179f3-3d76-412a-b2ca-738cf3bed3d2",
-        "columnName": "ITM_CTC_CONTRACT_TYPE",
-        "label": "Contract Type",
-        "description": "Contract Type",
-        "maxLength": "50",
-        "dataType": "NVARCHAR",
-        "technicalDataType": "NVARCHAR",
-        "controlName": "Input",
-        "fieldName": "ITM_CTC_CONTRACT_TYPE",
-        "propertyDto": {
-          "isMultiSelect": null,
-          "isEditable": true,
-          "isMandatory": true,
-          "isVisible": true,
-          "isKey": null,
-          "sequence": 2,
-          "isHeader": null,
-          "isLookup": true,
-          "isSearchParam": null,
-          "lookupType": "VL",
-          "lookupId": "13b83e89351346d4895a7892da4e47a7",
-          "businessType": "C",
-          "isDefaulted": false,
-          "defaultValue": null,
-          "defaultValueText": null,
-          "isDependent": false,
-          "operator": null,
-          "variableKeySeq": null,
-          "isOperatorColumn": null,
-          "isVariableKey": null,
-          "isGlobalFilterApplied": null,
-          "isGlobalFilterEditable": true,
-          "isGlobalSortEditable": true,
-          "isRuleBasedParam": null,
-          "isPricingField": null,
-          "isPinned": null,
-          "isEditableOnSearch": null,
-          "isEditableOnUpdate": null,
-          "isEditableOnExport": null,
-          "isVisibleOnExport": null,
-          "isVisibleOnCustomVariantCreation": null,
-          "isMandatoryOnCustomVariantCreation": null,
-          "defaultOperator": null,
-          "isGlobalSortApplied": null,
-          "isAutoFill": false,
-          "isLink": null,
-          "groupBy": null,
-          "groupBySequence": null,
-          "is_restricted_mandatory": null,
-          "isApproval": null,
-          "isAutoSequence": null,
-          "columnSign": null,
-          "valueType": null,
-          "roundingDefinition": null,
-          "isSource": null,
-          "destinationField": null,
-          "colourCode": null,
-          "isExclusive": null,
-          "exclusiveWith": null,
-          "colInfo": null,
-          "conditionalRequiredFields": null,
-          "isfilterable": null
-        },
-        "sortDto": null,
-        "filterDto": null,
-        "shortDescription": null,
-        "longDescription": null,
-        "odataFieldDescription": null,
-        "maxSequenceValue": null,
-        "aliasName": "ITM_CTC_CONTRACT_TYPE",
-        "lookupRepresentation": null
-      },
       {
         "variantFieldId": "4504df2a97fc49ef91c10b7c157155cb",
         "tableId": null,
@@ -243,7 +89,7 @@ const EMBEDDED_VARIANT_DATA = [
           "isMandatory": true,
           "isVisible": true,
           "isKey": null,
-          "sequence": 3,
+          "sequence": 1,
           "isHeader": null,
           "isLookup": true,
           "isSearchParam": null,
@@ -301,13 +147,13 @@ const EMBEDDED_VARIANT_DATA = [
         "lookupRepresentation": null
       },
       {
-        "variantFieldId": "1f6ca36af6254be7b7d52bd1246a45a2",
+        "variantFieldId": "767590fa01e74ec0bad8149cf12c1e54",
         "tableId": null,
         "schemaId": null,
         "isKey": null,
         "columnId": "a05ee962-a1ab-4991-916f-327c90ae1c21",
         "columnName": "ITM_CTC_DOC_DATE",
-        "label": "Document Date",
+        "label": "Contract Date",
         "description": "Document Date",
         "maxLength": "15",
         "dataType": "DATE",
@@ -320,7 +166,7 @@ const EMBEDDED_VARIANT_DATA = [
           "isMandatory": true,
           "isVisible": true,
           "isKey": null,
-          "sequence": 4,
+          "sequence": 2,
           "isHeader": null,
           "isLookup": false,
           "isSearchParam": null,
@@ -397,7 +243,7 @@ const EMBEDDED_VARIANT_DATA = [
           "isMandatory": true,
           "isVisible": true,
           "isKey": null,
-          "sequence": 5,
+          "sequence": 3,
           "isHeader": null,
           "isLookup": false,
           "isSearchParam": null,
@@ -474,7 +320,7 @@ const EMBEDDED_VARIANT_DATA = [
           "isMandatory": true,
           "isVisible": true,
           "isKey": null,
-          "sequence": 6,
+          "sequence": 4,
           "isHeader": null,
           "isLookup": false,
           "isSearchParam": null,
@@ -841,7 +687,7 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
 });
 
 // ─── Main Component ──────────────────────────────────────────────────────────────
-const CreateB2BTradingContract = forwardRef(({ variantData: externalVariantData, initialData, requestOptions, onSubmit, onReset, columns = 2, title, showHeader = true, showFooter = true, readOnly = false }, ref) => {
+const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData, requestOptions, onSubmit, onReset, columns = 2, title, showHeader = true, showFooter = true, readOnly = false }, ref) => {
   const headers = requestOptions?.headers;
   const baseUrl = requestOptions?.baseUrl || '';
   // Normalize initialData: handle both raw fields object and submit data format
@@ -1196,5 +1042,5 @@ const CreateB2BTradingContract = forwardRef(({ variantData: externalVariantData,
   );
 });
 
-CreateB2BTradingContract.displayName = 'CreateB2BTradingContract';
-export default CreateB2BTradingContract;
+CTCB2BHeader.displayName = 'CTCB2BHeader';
+export default CTCB2BHeader;
