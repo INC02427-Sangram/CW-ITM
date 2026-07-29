@@ -283,6 +283,8 @@ export default function SideNav() {
           flexDirection: "column",
           height: "100%",
           position: "relative",
+          boxShadow: drawerOpen ? "2px 0 8px #b2bec3" : "none",
+
         }}
       >
         <div

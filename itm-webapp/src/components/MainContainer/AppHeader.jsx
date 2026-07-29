@@ -11,19 +11,21 @@ import {
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import SettingsIcon from "@mui/icons-material/Settings";
 import "./AppHeader.css";
 import CherryWork from "../../assets/cherrywork_logo.png";
 import UserProfilePopover from "../Common/UserProfilePopover";
 import NotificationsPopover from "../Common/NotificationsPopover";
 import SystemHealthPopover from "../Common/SystemHealthPopover";
-
+import ApplicationSettingsPopover from "../Common/ApplicationSettingsPopover";
 export default function AppHeader() {
   // Get user info from Redux store
   const { userInfo, isAuthenticated } = useSelector((state) => state.user);
 
-  const displayName = isAuthenticated && userInfo 
-    ? `${userInfo.firstName} ${userInfo.lastName}` 
-    : "Guest";
+  const displayName =
+    isAuthenticated && userInfo
+      ? `${userInfo.firstName} ${userInfo.lastName}`
+      : "Guest";
 
   // Notifications popover state
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
@@ -38,9 +40,18 @@ export default function AppHeader() {
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const isProfileOpen = Boolean(profileAnchorEl);
 
+  // Application settings click handler
+  const [appSettingsAnchorEl, setAppSettingsAnchorEl] = useState(null);
+  const isAppSettingsOpen = Boolean(appSettingsAnchorEl);
+
   const handleHealthClick = (event) => setHealthAnchorEl(event.currentTarget);
+  const handleAppSettingsClick = (event) => {
+    setAppSettingsAnchorEl(event.currentTarget);
+    console.log("App Settings clicked");
+  };
   const handleHealthClose = () => setHealthAnchorEl(null);
-  const handleNotificationsClick = (event) => setNotificationsAnchorEl(event.currentTarget);
+  const handleNotificationsClick = (event) =>
+    setNotificationsAnchorEl(event.currentTarget);
   const handleNotificationsClose = () => setNotificationsAnchorEl(null);
   const handleProfileClick = (event) => setProfileAnchorEl(event.currentTarget);
   const handleProfileClose = () => setProfileAnchorEl(null);
@@ -109,6 +120,23 @@ export default function AppHeader() {
           className="header-right"
           gap={1.5}
         >
+          <Tooltip title="Application Settings" arrow placement="bottom">
+            <MuiIconButton
+              onClick={handleAppSettingsClick}
+              aria-label="app-settings"
+              size="medium"
+              sx={{
+                color: "#666",
+                "&:hover": {
+                  backgroundColor: "#eae9ff !important",
+                  color: "#3730c7",
+                },
+              }}
+            >
+              <SettingsIcon />
+            </MuiIconButton>
+          </Tooltip>
+
           <Tooltip title="System Health" arrow placement="bottom">
             <MuiIconButton
               onClick={handleHealthClick}
@@ -140,11 +168,7 @@ export default function AppHeader() {
                 },
               }}
             >
-              <Badge 
-                color="error" 
-                badgeContent={unreadCount} 
-                max={9}
-              >
+              <Badge color="error" badgeContent={unreadCount} max={9}>
                 <NotificationsIcon />
               </Badge>
             </MuiIconButton>
@@ -171,11 +195,20 @@ export default function AppHeader() {
                   cursor: "pointer",
                 }}
               >
-                {displayName.split(" ").map((n) => n[0]).join("")}
+                {displayName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </Avatar>
             </MuiIconButton>
           </Tooltip>
-          
+
+          <ApplicationSettingsPopover
+            anchorEl={appSettingsAnchorEl}
+            open={isAppSettingsOpen}
+            onClose={() => setAppSettingsAnchorEl(null)}
+          />
+
           <SystemHealthPopover
             anchorEl={healthAnchorEl}
             open={isHealthOpen}

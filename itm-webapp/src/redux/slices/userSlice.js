@@ -11,14 +11,20 @@ const initialState = {
     firstName: "John",
     lastName: "Doe",
     role: "Trading Manager",
-    permissions: ["view_contracts", "create_contracts", "view_orders", "create_orders", "view_dashboard"],
+    permissions: [
+      "view_contracts",
+      "create_contracts",
+      "view_orders",
+      "create_orders",
+      "view_dashboard",
+    ],
     avatar: "https://i.pravatar.cc/150?img=12",
   },
   preferences: {
     theme: "light",
     language: "en",
     dateFormat: "DD/MM/YYYY",
-    timezone: "UTC",
+    timeFormat: "24h",
   },
 };
 
