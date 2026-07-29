@@ -207,14 +207,12 @@ export default function ApplicationSettingsPopover({
         >
           <Button
             variant="outlined"
-            size="small"
             onClick={onClose}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
-            size="small"
             onClick={onClose}
           >
             Save

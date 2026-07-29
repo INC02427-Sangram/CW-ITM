@@ -5,7 +5,7 @@ export function CustomButton({
   children,
   onClick,
   variant = "outlined",
-  size = "small",
+  size = "medium",
   colorHex,
   bgColor,
   hoverBgColor,
@@ -30,7 +30,7 @@ export function CustomButton({
   return (
     <MuiButton
       variant={variant}
-      size={size}
+      size="medium"
       onClick={onClick}
       sx={{
         color: finalTextColor,
