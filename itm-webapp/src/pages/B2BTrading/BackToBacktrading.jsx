@@ -10,7 +10,9 @@ import { Add, ViewIcon } from "@cw/rds/icons";
 import { dummyTableData } from "../../dummydatas/dummydata";
 import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
 import FilterAccordian from "../../components/Common/FilterAccordian";
-import B2BTradingFilter from "../../cw-generated-forms/B2BTradingFilter";
+import B2BTradingFilter, {
+  ListView,
+} from "../../cw-generated-forms/B2BTradingFilter";
 import requestOptions from "../../utils/fnServices/requestOptions";
 
 const STATUS_STYLES = {
@@ -20,47 +22,31 @@ const STATUS_STYLES = {
   "Expiring Soon": { color: "#b56a1f", backgroundColor: "#fdf1e3" },
 };
 
-function ViewActionButton({ row }) {
-  const navigate = useNavigate();
-  return (
-    <IconButton
-      size="small"
-      onClick={() =>
-        navigate("contract-details", {
-          state: { contractRow: row },
-        })
-      }
-    >
-      <ViewIcon />
-    </IconButton>
-  );
-}
-
 const contractColumns = [
-  { field: "ITM_CTC_ID", headerName: "Contract #", flex: 1, minWidth: 140 },
-  { field: "supplier", headerName: "Supplier", flex: 1, minWidth: 170 },
-  { field: "soldToParty", headerName: "Sold-To Party", flex: 1, minWidth: 170 },
-  { field: "material", headerName: "Material", flex: 1, minWidth: 140 },
+  { fieldName: "ITM_CTC_ID", label: "Contract", flex: 1, minWidth: 140 },
+  { fieldName: "supplier", label: "Supplier", flex: 1, minWidth: 170 },
+  { fieldName: "soldToParty", label: "Sold-To Party", flex: 1, minWidth: 170 },
+  { fieldName: "material", label: "Material", flex: 1, minWidth: 140 },
   {
-    field: "validityPeriod",
-    headerName: "Validity Period",
+    fieldName: "validityPeriod",
+    label: "Validity Period",
     flex: 1,
     minWidth: 210,
   },
-  { field: "buyPrice", headerName: "Buy Price", width: 110 },
-  { field: "sellPrice", headerName: "Sell Price", width: 110 },
-  { field: "currency", headerName: "Currency", width: 100 },
+  { fieldName: "buyPrice", label: "Buy Price", width: 110 },
+  { fieldName: "sellPrice", label: "Sell Price", width: 110 },
+  { fieldName: "currency", label: "Currency", width: 100 },
   {
-    field: "targetQuantity",
-    headerName: "Target Quantity",
+    fieldName: "targetQuantity",
+    label: "Target Quantity",
     width: 140,
     align: "right",
     headerAlign: "right",
   },
-  { field: "unit", headerName: "Unit", width: 80 },
+  { fieldName: "unit", label: "Unit", width: 80 },
   {
-    field: "status",
-    headerName: "Status",
+    fieldName: "status",
+    label: "Status",
     width: 150,
     sortable: false,
     renderCell: (params) => (
@@ -72,11 +58,10 @@ const contractColumns = [
     ),
   },
   {
-    field: "actions",
-    headerName: "Actions",
+    fieldName: "actions",
+    label: "Actions",
     width: 150,
     sortable: false,
-    renderCell: (params) => <ViewActionButton row={params.row} />,
   },
 ];
 
@@ -100,7 +85,33 @@ export default function BackToBacktrading() {
   const [createContractOpen, setCreateContractOpen] = useState(false);
   const [contractData, setContractData] = useState(null);
   const filterRef = useRef();
-
+  const [selectedContracts, setSelectedContracts] = useState([]);
+  const formatValue = (col, value) => {
+    if (col.fieldName === "actions") {
+      return (
+        <IconButton
+          size="small"
+          onClick={() =>
+            navigate("contract-details", {
+              state: { contractRow: value },
+            })
+          }
+        >
+          <ViewIcon />
+        </IconButton>
+      );
+    }
+    if (col.fieldName === "status") {
+      return (
+        <Chip
+          label={value}
+          size="small"
+          sx={{ fontWeight: 600, ...(STATUS_STYLES[value] || {}) }}
+        />
+      );
+    }
+    return value;
+  };
   const handleClear = () => {
     filterRef.current?.reset();
   };
@@ -177,12 +188,12 @@ export default function BackToBacktrading() {
             />
           </Box>
           <Box sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}>
-            <ReusableDataGrid
-              rows={contractRows}
+            <ListView
+              data={contractRows}
               columns={contractColumns}
-              autoHeight
-              hidePagination
-              disableRowSelectionOnClick
+              selectable={true}
+              onSelectionChange={setSelectedContracts}
+              formatValue={formatValue}
             />
           </Box>
         </Box>

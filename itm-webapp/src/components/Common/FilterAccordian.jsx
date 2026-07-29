@@ -21,7 +21,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 const FilterAccordian = ({
   title = "Filters",
   initialValues = {},
-  defaultExpanded = true,
+  defaultExpanded = false,
   onSearch,
   onClear,
   filterFieldsComponent,
