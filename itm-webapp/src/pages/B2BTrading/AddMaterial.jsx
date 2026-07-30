@@ -671,12 +671,6 @@ const AddMaterial = forwardRef(
                   variant="outlined"
                   startIcon={<Add sx={{ fontSize: 18 }} />}
                   onClick={handleAddExpenseRow}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 600,
-                    color: "#23409a",
-                    borderColor: "#23409a",
-                  }}
                 >
                   Add Row
                 </Button>
@@ -830,12 +824,6 @@ const AddMaterial = forwardRef(
             <Button
               variant="outlined"
               onClick={handleCloseExpenseDialog}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                color: "#23409a",
-                borderColor: "#23409a",
-              }}
             >
               Cancel
             </Button>
@@ -843,12 +831,6 @@ const AddMaterial = forwardRef(
               variant="contained"
               onClick={handleSaveExpenseDialog}
               disabled={readOnly}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                backgroundColor: "#123db8",
-                "&:hover": { backgroundColor: "#0f35a1" },
-              }}
             >
               Add
             </Button>
