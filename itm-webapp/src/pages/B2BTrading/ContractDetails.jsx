@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   BottomNavigation,
   Box,
-  Button,
   Chip,
   IconButton,
   Typography,
@@ -13,7 +12,7 @@ import SendIcon from "@mui/icons-material/Send";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import AddMaterial from "./AddMaterial";
 import { ArrowBack } from "@cw/rds/icons";
-
+import Button from "../../components/CommonMUI/CustomButton"
 // Dummy data source — in a real integration this would come from the contract API response.
 const dummyContractDetails = {
   contractNumber: "BTBC-882-2024",
@@ -304,25 +303,12 @@ export default function ContractDetails({ contractData }) {
       >
         <Button
           variant="outlined"
-          sx={{
-            textTransform: "none",
-            color: "#23409a",
-            fontWeight: 600,
-            px: 2.5,
-          }}
         >
           Save & Submit For Approval
         </Button>
         <Button
           variant="contained"
           endIcon={<SendIcon sx={{ fontSize: 16 }} />}
-          sx={{
-            textTransform: "none",
-            fontWeight: 600,
-            backgroundColor: "#123db8",
-            px: 3,
-            "&:hover": { backgroundColor: "#0f35a1" },
-          }}
         >
           Submit & Create Purchase Order
         </Button>

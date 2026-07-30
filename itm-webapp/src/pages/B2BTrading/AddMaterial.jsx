@@ -1,7 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import {
   Box,
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,6 +26,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Add, Copy } from "@cw/rds/icons";
 import CallSplit from "@mui/icons-material/CallSplit";
 import ReusableToast from "../../components/Common/ReusableToast";
+import Button from "../../components/CommonMUI/CustomButton";
 const MATERIAL_OPTIONS = [
   "Glycol - 2114",
   "Lens - XJ720",
@@ -46,44 +46,44 @@ const EXPENSE_NAME_OPTIONS = [
 ];
 
 const columns = [
-  { key: "serial", label: "#", width: 50 },
+  { key: "serial", label: "#", width: 20 },
   { key: "actions", label: "Actions", width: 50 },
-  { key: "supplier", label: "Supplier", width: 50 },
-  { key: "material", label: "Material", width: 50 },
-  { key: "deliveryPeriodFrom", label: "Delivery Period From", width: 100 },
-  { key: "deliveryPeriodTo", label: "Delivery Period To", width: 100 },
-  { key: "salesQuantity", label: "Sales Qty", width: 70 },
+  { key: "supplier", label: "Supplier", width: 100 },
+  { key: "material", label: "Material", width: 100 },
+  { key: "deliveryPeriodFrom", label: "Delivery Period From", width: 200 },
+  { key: "deliveryPeriodTo", label: "Delivery Period To", width: 200 },
+  { key: "salesQuantity", label: "Sales Qty", width: 100 },
   { key: "salesQuantityUnit", label: "Sales Unit", width: 50 },
   {
     key: "salesOverdeliveryTolerance",
     label: "Sales Overdelivery Tolerance",
-    width: 120,
+    width: 200,
   },
   {
     key: "salesUnderdeliveryTolerance",
     label: "Sales Underdelivery Tolerance",
-    width: 120,
+    width: 200,
   },
-  { key: "purchaseQuantity", label: "Purchase Qty", width: 50 },
+  { key: "purchaseQuantity", label: "Purchase Qty", width: 100 },
   { key: "purchaseQuantityUnit", label: "Purchase Unit", width: 100 },
   {
     key: "purchaseOverdeliveryTolerance",
     label: "Purchase Overdelivery Tolerance",
-    width: 120,
+    width: 200,
   },
   {
     key: "purchaseUnderdeliveryTolerance",
     label: "Purchase Underdelivery Tolerance",
-    width: 120,
+    width: 200,
   },
-  { key: "salesPrice", label: "Sales Price", width: 50 },
-  { key: "salesPriceCurrency", label: "Sales Price Currency", width: 50 },
-  { key: "salesPricePerUnit", label: "Sales Price Per Unit", width: 50 },
-  { key: "purchasePrice", label: "Purchase Price", width: 50 },
+  { key: "salesPrice", label: "Sales Price", width: 100 },
+  { key: "salesPriceCurrency", label: "Sales Price Currency", width: 150 },
+  { key: "salesPricePerUnit", label: "Sales Price Per Unit", width: 150 },
+  { key: "purchasePrice", label: "Purchase Price", width: 100 },
   {
     key: "purchasePriceCurrency",
     label: "Purchase Price Currency",
-    width: 120,
+    width: 150,
   },
   { key: "purchasePricePerUnit", label: "Purchase Price Per Unit", width: 120 },
   { key: "plant", label: "Plant", width: 50 },
@@ -475,8 +475,6 @@ const AddMaterial = forwardRef(
             sx={{
               textTransform: "none",
               fontWeight: 600,
-              color: "#23409a",
-              borderColor: "#23409a",
               whiteSpace: "nowrap",
             }}
           >
@@ -578,12 +576,6 @@ const AddMaterial = forwardRef(
               variant="outlined"
               startIcon={<Add sx={{ fontSize: 18 }} />}
               onClick={handleAddMaterial}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                color: "#23409a",
-                borderColor: "#23409a",
-              }}
             >
               Add Material
             </Button>
@@ -601,12 +593,13 @@ const AddMaterial = forwardRef(
                     key={column.key}
                     align={column.key === "actions" ? "center" : "left"}
                     sx={{
+                      borderColor:"black",
                       color: "#ffffff",
                       fontWeight: 600,
                       fontSize: 13,
                       overflow: "hidden",
                       lineHeight: 1.2,
-                      width: column.width,
+                      minWidth: `${column.width}px`,
                     }}
                   >
                     {column.label}

@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
   Box,
-  Button,
   Chip,
   Dialog,
   IconButton,
@@ -23,7 +22,7 @@ import CTCB2BHeader from "../../cw-generated-forms/CTCB2BHeader";
 import CTCB2BExchangeRate from "../../cw-generated-forms/CTCB2BExchangeRate";
 import CTCB2BCustomerSupplier from "../../cw-generated-forms/CTCB2BCustomerSupplier";
 import CTCB2BCurrencyPricing from "../../cw-generated-forms/CTCB2BCurrencyPricing";
-
+import Button from "../../components/CommonMUI/CustomButton";
 const MONTHS = [
   "Jan",
   "Feb",
@@ -445,12 +444,6 @@ export default function CreateB2BTradingContractPage() {
             <Button
               variant="outlined"
               onClick={handleBack}
-              sx={{
-                textTransform: "none",
-                color: "#23409a",
-                fontWeight: 600,
-                px: 2.5,
-              }}
             >
               Back
             </Button>
@@ -460,13 +453,6 @@ export default function CreateB2BTradingContractPage() {
             onClick={
               activeStep === steps.length - 1 ? handleSubmit : handleNext
             }
-            sx={{
-              textTransform: "none",
-              fontWeight: 600,
-              backgroundColor: "#123db8",
-              px: 3,
-              "&:hover": { backgroundColor: "#0f35a1" },
-            }}
           >
             {activeStep === steps.length - 1 ? "Submit" : "Next"}
           </Button>

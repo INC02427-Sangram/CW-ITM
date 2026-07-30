@@ -43,13 +43,13 @@ const timeFormats = [
 ];
 
 const dateSettings = [
-  { key: "10", value: "This Week" },
-  { key: "20", value: "This Month" },
-  { key: "25", value: "Last one Month" },
-  { key: "30", value: "Last Month" },
-  { key: "40", value: "Current Quater" },
-  { key: "50", value: "Last Quater" },
-  { key: "60", value: "Current Year to Date" },
+  { key: "10",value:"10", label: "This Week" },
+  { key: "20", value: "20", label: "This Month" },
+  { key: "25", value: "25", label: "Last one Month" },
+  { key: "30", value: "30", label: "Last Month" },
+  { key: "40", value: "40", label: "Current Quater" },
+  { key: "50", value: "50", label: "Last Quater" },
+  { key: "60", value: "60", label: "Current Year to Date" },
 ];
 
 export { dateFormatOptions, languageOptions, timeFormats, dateSettings };

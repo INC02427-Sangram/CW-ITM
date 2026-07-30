@@ -24,7 +24,8 @@ const initialState = {
     theme: "light",
     language: "en",
     dateFormat: "DD/MM/YYYY",
-    timeFormat: "24h",
+    timeFormat: "HH:mm:ss",
+    dateRange: "25",
   },
 };
 

@@ -12,15 +12,10 @@ const initialState = {
     isDirty: false,
   },
   pagination: {
-    page: 0,
-    pageSize: 10,
-    totalCount: 0,
+    
   },
   filters: {
-    status: "all",
-    dateRange: null,
-    supplier: null,
-    searchQuery: "",
+    
   },
   selectedContract: null,
 };

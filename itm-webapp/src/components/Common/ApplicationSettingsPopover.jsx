@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Popover,
   Box,
@@ -30,6 +30,11 @@ export default function ApplicationSettingsPopover({
 }) {
   const dispatch = useDispatch();
   const userPreferences = useSelector((state) => state.user.preferences);
+  const [preferences, setPreferencesState] = useState(userPreferences);
+  const handleSave = () => {
+    dispatch(setPreferences(preferences));
+    onClose();
+  };
 
   return (
     <Popover
@@ -108,13 +113,23 @@ export default function ApplicationSettingsPopover({
               options={dateFormatOptions}
               getOptionLabel={(option) => option.value}
               groupBy={(option) => option.type}
-              defaultValue={dateFormatOptions[0]}
+              defaultValue={
+                preferences.dateFormat
+                  ? dateFormatOptions.find(
+                      (option) => option.key === preferences.dateFormat,
+                    )
+                  : dateFormatOptions[0]
+              }
               renderInput={(params) => (
                 <TextField {...params} placeholder="Select Date Format" />
               )}
               onChange={(event, newValue) => {
                 // Handle date format change
                 console.log("Selected Date Format:", newValue);
+                setPreferencesState((prev) => ({
+                  ...prev,
+                  dateFormat: newValue.key,
+                }));
               }}
             />
           </Box>
@@ -131,14 +146,24 @@ export default function ApplicationSettingsPopover({
             <Autocomplete
               size="small"
               options={dateSettings}
-              getOptionLabel={(option) => option.value}
-              defaultValue={dateSettings[0]}
+              getOptionLabel={(option) => option.label}
+              defaultValue={
+                preferences.dateRange
+                  ? dateSettings.find(
+                      (option) => option.key === preferences.dateRange,
+                    )
+                  : dateSettings[0]
+              }
               renderInput={(params) => (
                 <TextField {...params} placeholder="Select Date Range" />
               )}
               onChange={(event, newValue) => {
                 // Handle date range change
                 console.log("Selected Date Range:", newValue);
+                setPreferencesState((prev) => ({
+                  ...prev,
+                  dateRange: newValue.value,
+                }));
               }}
             />
           </Box>
@@ -155,8 +180,12 @@ export default function ApplicationSettingsPopover({
               <Select
                 onChange={(event) => {
                   console.log("Selected Time Format:", event.target.value);
+                  setPreferencesState((prev) => ({
+                    ...prev,
+                    timeFormat: event.target.value,
+                  }));
                 }}
-                defaultValue="hh:mm:ss A"
+                defaultValue={preferences.timeFormat || "HH:mm:ss"}
               >
                 {timeFormats.map((format) => (
                   <MenuItem key={format.value} value={format.value}>
@@ -177,9 +206,13 @@ export default function ApplicationSettingsPopover({
             </Typography>
             <FormControl fullWidth size="small">
               <Select
-                defaultValue="en"
+                defaultValue={preferences.language || "en"}
                 onChange={(event) => {
                   console.log("Selected Language:", event.target.value);
+                  setPreferencesState((prev) => ({
+                    ...prev,
+                    language: event.target.value,
+                  }));
                 }}
               >
                 {languageOptions.map((lang) => (
@@ -205,16 +238,10 @@ export default function ApplicationSettingsPopover({
             backgroundColor: "#f8f9fb",
           }}
         >
-          <Button
-            variant="outlined"
-            onClick={onClose}
-          >
+          <Button variant="outlined" onClick={onClose}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            onClick={onClose}
-          >
+          <Button variant="contained" onClick={handleSave}>
             Save
           </Button>
         </Box>
