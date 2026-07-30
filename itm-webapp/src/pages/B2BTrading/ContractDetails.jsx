@@ -29,11 +29,27 @@ const dummyContractDetails = {
   documentDate: "01/Jan/2024",
   items: [
     {
+      supplier: "BASF",
       material: "Glycol - 2114",
-      targetQuantity: "10000",
-      unit: "MT",
-      buyPrice: "80",
-      sellPrice: "50",
+      deliveryPeriodFrom: "2024-01-01",
+      deliveryPeriodTo: "2024-12-31",
+      salesQuantity: "10000",
+      salesQuantityUnit: "MT",
+      salesOverdeliveryTolerance: "5",
+      salesUnderdeliveryTolerance: "5",
+      purchaseQuantity: "10000",
+      purchaseQuantityUnit: "MT",
+      purchaseOverdeliveryTolerance: "5",
+      purchaseUnderdeliveryTolerance: "5",
+      salesPrice: "90",
+      salesPriceCurrency: "EUR",
+      salesPricePerUnit: "MT",
+      purchasePrice: "80",
+      purchasePriceCurrency: "USD",
+      purchasePricePerUnit: "MT",
+      plant: "PL01",
+      storageLocation: "SL-100",
+      expenses: [],
       editing: false,
     },
   ],
@@ -82,17 +98,21 @@ const formatAmount = (value) =>
   });
 
 // Maps a Back-to-Back Trading table row (dashboard list shape) into the richer
-// contractData shape this page renders. Fields the list row doesn't carry
-// (incoterms, payment terms, etc.) fall back to the dummy contract details.
+// contractData shape this page renders. row.material already carries the full
+// AddMaterial line-item shape, so it's used directly as the items array.
 const buildContractDataFromRow = (row) => {
   if (!row) return dummyContractDetails;
   const [validityFrom, validityTo] = String(row.validityPeriod || "")
     .split(" to ")
     .map((s) => s.trim());
-  const targetQuantity = parseNumeric(row.targetQuantity);
-  const buyPrice = parseNumeric(row.buyPrice);
-  const sellPrice = parseNumeric(row.sellPrice);
-  const netValue = targetQuantity * sellPrice;
+  const items = Array.isArray(row.material) && row.material.length
+    ? row.material.map((item) => ({ ...item, editing: false }))
+    : dummyContractDetails.items;
+  const netValue = items.reduce(
+    (sum, item) =>
+      sum + parseNumeric(item.salesQuantity) * parseNumeric(item.salesPrice),
+    0,
+  );
 
   return {
     ...dummyContractDetails,
@@ -102,16 +122,17 @@ const buildContractDataFromRow = (row) => {
     currency: row.currency || dummyContractDetails.currency,
     validityFrom: validityFrom || dummyContractDetails.validityFrom,
     validityTo: validityTo || dummyContractDetails.validityTo,
-    items: [
-      {
-        material: row.material,
-        targetQuantity,
-        unit: row.unit,
-        buyPrice,
-        sellPrice,
-        editing: false,
-      },
-    ],
+    incoterms: row.incoterms || dummyContractDetails.incoterms,
+    paymentTerms: row.paymentTerms || dummyContractDetails.paymentTerms,
+    personResponsible:
+      row.personResponsible || dummyContractDetails.personResponsible,
+    purchasingOrganization:
+      row.purchasingOrganization ||
+      dummyContractDetails.purchasingOrganization,
+    exchangeRateType:
+      row.exchangeRateType || dummyContractDetails.exchangeRateType,
+    documentDate: row.documentDate || dummyContractDetails.documentDate,
+    items,
     netContractValue: formatAmount(netValue),
     tax: "0.00",
     totalContractValue: formatAmount(netValue),

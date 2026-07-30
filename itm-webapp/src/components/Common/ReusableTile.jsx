@@ -26,9 +26,9 @@ const StyledWrapper = styled.div`
     background-color: #ffffff;
     background-image: linear-gradient(
       43deg,
-      #ffffff 0%,
-      #ffe4e4 46%,
-      #fff4dc 100%
+      #fbfbfb 0%,
+      #d4f6ff 46%,
+      #c6e7ff 100%
     );
     border-radius: 15px;
     color: white;
