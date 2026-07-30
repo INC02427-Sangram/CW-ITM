@@ -45,6 +45,8 @@ function useSlideHighlight() {
   return { itemRefs, style, moveTo, hide };
 }
 
+const OVERFLOW_HIGHLIGHT_ID = "__overflow__";
+
 export default function SideNav() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,7 +108,7 @@ export default function SideNav() {
 
       // Get actual height of first child (all items should be same height)
       const firstNavItem = navElement.querySelector(".sideNavOptionTile");
-      const itemHeight = firstNavItem?.offsetHeight || 60;
+      const itemHeight = firstNavItem?.offsetHeight + 10 || 60;
       const footerHeight = itemHeight; // Space for "+N more" button (same as item height)
       const availableHeight = containerHeight - footerHeight;
 
@@ -300,24 +302,25 @@ export default function SideNav() {
             <Box
               className="sideNavOptionTile"
               onClick={() => setDrawerOpen(true)}
+              onMouseEnter={() => mainHighlight.moveTo(OVERFLOW_HIGHLIGHT_ID)}
               sx={{
                 cursor: "pointer",
+                marginTop: "auto",
                 width: "95%",
                 "&:hover": {
                   background: "transparent !important",
-                  "& .iconBadge": {
-                    background:
-                      theme.palette.mode === "light"
-                        ? "#EDEBFF"
-                        : theme.palette.background.datagridHeader,
-                  },
-                  "& .iconBadge span": {
+                  "& .iconBadge span, & .MuiSvgIcon-root": {
                     color: `${theme.palette.primary.main} !important`,
                   },
                 },
               }}
             >
-              <div className="iconBadge">
+              <div
+                className="iconBadge"
+                ref={(el) => {
+                  mainHighlight.itemRefs.current[OVERFLOW_HIGHLIGHT_ID] = el;
+                }}
+              >
                 <MoreApps />
               </div>
               <p className="sideNavLabel">+{overflowItems.length} more</p>

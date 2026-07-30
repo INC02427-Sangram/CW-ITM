@@ -11,7 +11,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 
 // Lazy load pages for MainContainer routing
 const Dashboard = lazy(() => import("../pages/Dashboard"));
-const BackToBackTrading = lazy(() => import("../pages/B2BTrading/BackToBacktrading"));
+const BackToBackTrading = lazy(() => import("../pages/B2BTrading/BackToBacktradingPage"));
 const PurchaseTrading = lazy(() => import("../pages/PurchaseTrading"));
 const SalesTrading = lazy(() => import("../pages/SalesTrading"));
 const PurchaseOrders = lazy(() => import("../pages/PurchaseOrders"));
