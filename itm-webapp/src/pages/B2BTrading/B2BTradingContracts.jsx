@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { IconButton, Chip, Tabs, Tab } from "@mui/material";
+import { IconButton, Chip, Tabs, Tab, Tooltip } from "@mui/material";
 import { Box } from "@mui/material";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
@@ -7,7 +7,11 @@ import ReusableButtons from "../../components/Common/ReusableButtons";
 import ReusableTile from "../../components/Common/ReusableTile";
 import ReusableDataGrid from "../../components/Common/ReusableDataGrid";
 import { Add, ViewIcon } from "@cw/rds/icons";
-import { B2BContractStatCards, B2BContractItemsStatCards, dummyTableData } from "../../dummydatas/dummydata";
+import {
+  B2BContractStatCards,
+  B2BContractItemsStatCards,
+  dummyTableData,
+} from "../../dummydatas/dummydata";
 import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
 import FilterAccordian from "../../components/Common/FilterAccordian";
 import B2BTradingFilter, {
@@ -24,7 +28,7 @@ const STATUS_STYLES = {
 const contractColumns = [
   { fieldName: "ITM_CTC_ID", label: "Contract", flex: 1, minWidth: 140 },
   { fieldName: "supplier", label: "Supplier", flex: 1, minWidth: 170 },
-  { fieldName: "soldToParty", label: "Sold-To Party", flex: 1, minWidth: 170 },
+  { fieldName: "customer", label: "Customer", flex: 1, minWidth: 170 },
   { fieldName: "material", label: "Material", flex: 1, minWidth: 140 },
   {
     fieldName: "validityPeriod",
@@ -32,17 +36,22 @@ const contractColumns = [
     flex: 1,
     minWidth: 210,
   },
-  { fieldName: "buyPrice", label: "Buy Price", width: 110 },
-  { fieldName: "sellPrice", label: "Sell Price", width: 110 },
-  { fieldName: "currency", label: "Currency", width: 100 },
+  { fieldName: "netPurchaseValue", label: "Net Purchase Price", width: 110 },
   {
-    fieldName: "targetQuantity",
-    label: "Target Quantity",
+    fieldName: "purchaseValueCurrency",
+    label: "Purchase Currency",
+    width: 100,
+  },
+  { fieldName: "netSalesValue", label: "Net Sales Price", width: 110 },
+  { fieldName: "salesValueCurrency", label: "Sales Currency", width: 100 },
+  {
+    fieldName: "netQuantity",
+    label: "Net Quantity",
     width: 140,
     align: "right",
     headerAlign: "right",
   },
-  { fieldName: "unit", label: "Unit", width: 80 },
+  { fieldName: "totalContractValue", label: "Total Contract Value", width: 80 },
   {
     fieldName: "status",
     label: "Status",
@@ -84,7 +93,7 @@ export default function B2BTradingContracts() {
           size="small"
           onClick={() =>
             navigate("contract-details", {
-              state: { contractRow: value },
+              state: { contractData: value },
             })
           }
         >
@@ -103,6 +112,20 @@ export default function B2BTradingContracts() {
     }
     if (col.fieldName === "material") {
       const materialItems = Array.isArray(value) ? value : [];
+      if (materialItems.length > 1)
+        return (
+          <Box display="flex" alignItems="center" gap={1}>
+            <span>{materialItems[0].material}</span>
+            <Tooltip
+              title={`Additional materials: ${materialItems
+                .slice(1)
+                .map((item) => item.material)
+                .join(", ")}`}
+            >
+              <Chip label={`+${materialItems.length - 1} more`} size="small" />
+            </Tooltip>
+          </Box>
+        );
       return (
         materialItems
           .map((item) => item.material)
@@ -168,7 +191,7 @@ export default function B2BTradingContracts() {
             formatValue={formatValue}
             onRowClick={(row) =>
               navigate("contract-details", {
-                state: { contractRow: row },
+                state: { contractData: row },
               })
             }
           />

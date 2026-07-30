@@ -131,9 +131,7 @@ export default function B2BTradingContractsItems() {
             // onSelectionChange={setSelectedContractItems}
             // formatValue={formatItemValue}
             onRowClick={(row) =>
-              navigate("contract-details", {
-                state: { contractRow: row },
-              })
+             console.log("Row clicked:", row)
             }
           />
         </Box>

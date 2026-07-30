@@ -12,7 +12,7 @@ import SendIcon from "@mui/icons-material/Send";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import AddMaterial from "./AddMaterial";
 import { ArrowBack } from "@cw/rds/icons";
-import Button from "../../components/CommonMUI/CustomButton"
+import Button from "../../components/CommonMUI/CustomButton";
 // Dummy data source — in a real integration this would come from the contract API response.
 const dummyContractDetails = {
   contractNumber: "BTBC-882-2024",
@@ -72,7 +72,11 @@ const CONTRACT_DETAIL_FIELDS = [
 ];
 
 const SUMMARY_FIELDS = [
-  { label: "Net Contract Value:", key: "netContractValue", emphasize: false },
+  { label: "Net Quantity:", key: "netQuantity", emphasize: false },
+  { label: "Net Quantity Unit:", key: "netQuantityUnit", emphasize: false },
+  { label: "Net Purchase Value:", key: "netPurchaseValue", emphasize: false },
+  { label: "Total Expenses:", key: "totalExpenses", emphasize: false },
+  { label: "Net Sales Value:", key: "netSalesValue", emphasize: false },
   { label: "Tax:", key: "tax", emphasize: false },
   {
     label: "Total Contract Value:",
@@ -105,9 +109,10 @@ const buildContractDataFromRow = (row) => {
   const [validityFrom, validityTo] = String(row.validityPeriod || "")
     .split(" to ")
     .map((s) => s.trim());
-  const items = Array.isArray(row.material) && row.material.length
-    ? row.material.map((item) => ({ ...item, editing: false }))
-    : dummyContractDetails.items;
+  const items =
+    Array.isArray(row.material) && row.material.length
+      ? row.material.map((item) => ({ ...item, editing: false }))
+      : dummyContractDetails.items;
   const netValue = items.reduce(
     (sum, item) =>
       sum + parseNumeric(item.salesQuantity) * parseNumeric(item.salesPrice),
@@ -115,35 +120,34 @@ const buildContractDataFromRow = (row) => {
   );
 
   return {
-    ...dummyContractDetails,
-    contractNumber: row.ITM_CTC_ID || dummyContractDetails.contractNumber,
-    status: row.status || dummyContractDetails.status,
-    supplier: row.supplier || dummyContractDetails.supplier,
-    currency: row.currency || dummyContractDetails.currency,
-    validityFrom: validityFrom || dummyContractDetails.validityFrom,
-    validityTo: validityTo || dummyContractDetails.validityTo,
-    incoterms: row.incoterms || dummyContractDetails.incoterms,
-    paymentTerms: row.paymentTerms || dummyContractDetails.paymentTerms,
-    personResponsible:
-      row.personResponsible || dummyContractDetails.personResponsible,
-    purchasingOrganization:
-      row.purchasingOrganization ||
-      dummyContractDetails.purchasingOrganization,
-    exchangeRateType:
-      row.exchangeRateType || dummyContractDetails.exchangeRateType,
-    documentDate: row.documentDate || dummyContractDetails.documentDate,
+    ...row,
+    contractNumber: row.ITM_CTC_ID || "N/A",
+    status: row.status || "N/A",
+    supplier: row.supplier || "N/A",
+    currency: row.currency || "N/A",
+    validityFrom: validityFrom || "N/A",
+    validityTo: validityTo || "N/A",
+    incoterms: row.incoterms || "N/A",
+    paymentTerms: row.paymentTerms || "N/A",
+    personResponsible: row.personResponsible || "N/A",
+    purchasingOrganization: row.purchasingOrganization || "N/A",
+    exchangeRateType: row.exchangeRateType || "N/A",
+    documentDate: row.documentDate || "N/A",
     items,
     netContractValue: formatAmount(netValue),
     tax: "0.00",
     totalContractValue: formatAmount(netValue),
+    salesValueCurrency: row.salesValueCurrency || "N/A",
+    purchaseValueCurrency: row.purchaseValueCurrency || "N/A",
   };
 };
 
 export default function ContractDetails({ contractData }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const resolvedContractData =
-    contractData || buildContractDataFromRow(location.state?.contractRow);
+  const resolvedContractData = buildContractDataFromRow(
+    location.state?.contractData,
+  );
   const detailValues = {
     ...resolvedContractData,
     validityPeriod: `${resolvedContractData.validityFrom}  -  ${resolvedContractData.validityTo}`,
@@ -151,7 +155,7 @@ export default function ContractDetails({ contractData }) {
   const statusStyle =
     STATUS_STYLES[resolvedContractData.status] ||
     STATUS_STYLES["Pending Approval"];
-
+  console.log(location.state?.contractData, "........");
   return (
     <div className="outermost-container">
       <Box
@@ -306,7 +310,7 @@ export default function ContractDetails({ contractData }) {
                 color: field.emphasize ? "#23409a" : "#2f3136",
               }}
             >
-              {resolvedContractData.currency} {detailValues[field.key]}
+              {detailValues[field.key]}
             </Typography>
           </Box>
         ))}
@@ -322,11 +326,7 @@ export default function ContractDetails({ contractData }) {
           gap: 1.5,
         }}
       >
-        <Button
-          variant="outlined"
-        >
-          Save & Submit For Approval
-        </Button>
+        <Button variant="outlined">Save & Submit For Approval</Button>
         <Button
           variant="contained"
           endIcon={<SendIcon sx={{ fontSize: 16 }} />}
