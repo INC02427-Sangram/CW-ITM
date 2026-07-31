@@ -18,67 +18,12 @@ import { ArrowBack } from "@cw/rds/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import requestOptions from "../../utils/fnServices/requestOptions";
 import { data } from "../../dummydatas/intitialDummy";
+import { buildFormBuilderFromContractData } from "../../utils/contractHelpers";
 import CTCB2BHeader from "../../cw-generated-forms/CTCB2BHeader";
 import CTCB2BExchangeRate from "../../cw-generated-forms/CTCB2BExchangeRate";
 import CTCB2BCustomerSupplier from "../../cw-generated-forms/CTCB2BCustomerSupplier";
 import CTCB2BCurrencyPricing from "../../cw-generated-forms/CTCB2BCurrencyPricing";
 import Button from "../../components/CommonMUI/CustomButton";
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-// Converts a display-formatted date ("01/Jan/2024") back to ISO ("2024-01-01").
-// Values already in another format (e.g. ISO) are passed through untouched.
-const toISODate = (value) => {
-  if (!value) return "";
-  const match = /^(\d{2})\/([A-Za-z]{3})\/(\d{4})$/.exec(String(value).trim());
-  if (!match) return value;
-  const [, day, mon, year] = match;
-  const monthIndex = MONTHS.indexOf(mon);
-  if (monthIndex === -1) return value;
-  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${day}`;
-};
-
-// Maps the Contract Details page's shape back into the ITM_CTC_* fields the
-// generated step forms expect, so "Edit" can reopen this wizard pre-filled.
-const buildHeaderDetailsFromContractData = (contractData) => {
-  if (!contractData) return {};
-
-  const [incoCode = "", ...incoLocParts] = String(
-    contractData.incoterms || "",
-  ).split(" - ");
-  const incoLoc = incoLocParts.join(" - ").trim();
-
-  return {
-    ITM_CTC_SUPPLIER: contractData.supplier || "",
-    ITM_CTC_DOC_DATE: toISODate(contractData.documentDate) || "",
-    ITM_CTC_VAL_FROM: toISODate(contractData.validityFrom) || "",
-    ITM_CTC_VAL_TO: toISODate(contractData.validityTo) || "",
-    ITM_CTC_PERSON: contractData.personResponsible || "",
-    ITM_CTC_PURCH_ORG: contractData.purchasingOrganization || "",
-    ITM_CTC_SALES_ORG: contractData.purchasingOrganization || "",
-    ITM_CTC_PURCH_CUR: contractData.currency || "",
-    ITM_CTC_SALES_CUR: contractData.currency || "",
-    ITM_CTC_PURCH_INCO: incoCode.trim() || "",
-    ITM_CTC_PURCH_INCO_LOC: incoLoc || "",
-    ITM_CTC_SALES_INCO: incoCode.trim() || "",
-    ITM_CTC_SALES_INCO_LOC: incoLoc || "",
-    ITM_CTC_TERMS_OF_PAY: contractData.paymentTerms || "",
-    ITM_CTC_TERMS_OF_PAY_SELL: contractData.paymentTerms || "",
-    ITM_CTC_EXC_RATE_TYPE: contractData.exchangeRateType || "",
-  };
-};
 
 const steps = [
   { label: "Header", number: 1 },
@@ -155,7 +100,7 @@ export default function CreateB2BTradingContractPage() {
   // Centralized form data state - stores all form values across steps
   const [formData, setFormData] = useState(() => {
     if (isEditMode) {
-      return buildHeaderDetailsFromContractData(editContractData);
+      return buildFormBuilderFromContractData(editContractData);
     }
     return {};
   });
@@ -164,7 +109,7 @@ export default function CreateB2BTradingContractPage() {
   const [contractItems, setContractItems] = useState(() => {
     return editContractData?.items?.length ? editContractData.items : [];
   });
-
+  console.log(formData, ".........");
   const computedSteps = steps.map((step, index) => ({
     ...step,
     state:
@@ -230,7 +175,7 @@ export default function CreateB2BTradingContractPage() {
       <CTCB2BHeader
         ref={formRef}
         {...headerFooterFalse}
-        initialData={data}
+        initialData={formData}
         columns={4}
         requestOptions={requestOptions}
       />
@@ -239,7 +184,7 @@ export default function CreateB2BTradingContractPage() {
       <CTCB2BCustomerSupplier
         ref={formRef}
         {...headerFooterFalse}
-        initialData={data}
+        initialData={formData}
         columns={4}
         requestOptions={requestOptions}
       />
@@ -248,7 +193,7 @@ export default function CreateB2BTradingContractPage() {
       <CTCB2BCurrencyPricing
         ref={formRef}
         {...headerFooterFalse}
-        initialData={data}
+        initialData={formData}
         columns={4}
         requestOptions={requestOptions}
       />
@@ -257,15 +202,17 @@ export default function CreateB2BTradingContractPage() {
       <CTCB2BExchangeRate
         ref={formRef}
         {...headerFooterFalse}
-        initialData={data}
+        initialData={formData}
         columns={4}
         requestOptions={requestOptions}
       />
     ),
-    Items: (formRef) => <AddMaterial ref={formRef} initialItems={data} />,
+    Items: (formRef) => (
+      <AddMaterial ref={formRef} initialItems={contractItems} />
+    ),
     "Review & Submit": (formRef) => (
       <ReviewContractDetails
-        headerDetails={data}
+        headerDetails={formData}
         contractItems={contractItems}
       />
     ),
@@ -441,10 +388,7 @@ export default function CreateB2BTradingContractPage() {
           }}
         >
           {activeStep > 0 && (
-            <Button
-              variant="outlined"
-              onClick={handleBack}
-            >
+            <Button variant="outlined" onClick={handleBack}>
               Back
             </Button>
           )}

@@ -143,59 +143,57 @@ export default function B2BTradingContracts() {
     console.log(filterRef.current.getValues());
   };
   return (
-    <Box display="flex" gap={2} flexDirection={"column"}>
-      <Box
-        display="flex"
-        gap={2}
-        mt={2}
-        flexDirection={"column"}
-        flexWrap={"wrap"}
-      >
-        <Box display="flex" gap={2} flexWrap={"wrap"}>
-          {B2BContractStatCards.map((card) => (
-            <Box
-              key={card.label}
-              sx={{ flex: "1 1 200px", minWidth: 200 }}
-              display="flex"
-            >
-              <ReusableTile
-                title={card.label}
-                subtitle={card.value}
-                description={card.sub}
-              />
-            </Box>
-          ))}
-        </Box>
-        <Box display="flex" gap={2} flexWrap={"wrap"}>
-          <FilterAccordian
-            title="Filter B2B Contracts"
-            onSearch={handleSearch}
-            onClear={handleClear}
-            filterFieldsComponent={
-              <B2BTradingFilter
-                ref={filterRef}
-                columns={4}
-                showHeader={false}
-                showFooter={false}
-                requestOptions={requestOptions}
-              />
-            }
-          />
-        </Box>
-        <Box sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}>
-          <ListView
-            data={contractRows}
-            columns={contractColumns}
-            selectable={true}
-            onSelectionChange={setSelectedContracts}
-            formatValue={formatValue}
-            onRowClick={(row) =>
-              navigate("contract-details", {
-                state: { contractData: row },
-              })
-            }
-          />
-        </Box>
+    <Box
+      display="flex"
+      gap={2}
+      mt={2}
+      flexDirection={"column"}
+      flexWrap={"wrap"}
+    >
+      <Box display="flex" gap={2} flexWrap={"wrap"}>
+        {B2BContractStatCards.map((card) => (
+          <Box
+            key={card.label}
+            sx={{ flex: "1 1 200px", minWidth: 200 }}
+            display="flex"
+          >
+            <ReusableTile
+              title={card.label}
+              subtitle={card.value}
+              description={card.sub}
+            />
+          </Box>
+        ))}
+      </Box>
+      <Box display="flex" gap={2} flexWrap={"wrap"}>
+        <FilterAccordian
+          title="Filter B2B Contracts"
+          onSearch={handleSearch}
+          onClear={handleClear}
+          filterFieldsComponent={
+            <B2BTradingFilter
+              ref={filterRef}
+              columns={4}
+              showHeader={false}
+              showFooter={false}
+              requestOptions={requestOptions}
+            />
+          }
+        />
+      </Box>
+      <Box sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}>
+        <ListView
+          data={contractRows}
+          columns={contractColumns}
+          selectable={true}
+          onSelectionChange={setSelectedContracts}
+          formatValue={formatValue}
+          onRowClick={(row) =>
+            navigate("contract-details", {
+              state: { contractData: row },
+            })
+          }
+        />
       </Box>
     </Box>
   );

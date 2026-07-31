@@ -1,4 +1,17 @@
-
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 export const toYYYYMMDD = (val) => {
   if (!val) return "";
 
@@ -31,7 +44,7 @@ export const toYYYYMMDD = (val) => {
     if (yy.length === 2) yy = `20${yy}`; // assume 20xx
     return `${yy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(
       2,
-      "0"
+      "0",
     )}`;
   }
 
@@ -58,3 +71,17 @@ export const isApiSuccess = (res) =>
   res?.status === "SUCCESS" ||
   res?.statusCode === 200 ||
   /success/i.test(String(res?.message || ""));
+
+// Converts a display-formatted date ("01/Jan/2024") back to ISO ("2024-01-01").
+// Values already in another format (e.g. ISO) are passed through untouched.
+const toISODate = (value) => {
+  if (!value) return "";
+  const match = /^(\d{2})\/([A-Za-z]{3})\/(\d{4})$/.exec(String(value).trim());
+  if (!match) return value;
+  const [, day, mon, year] = match;
+  const monthIndex = MONTHS.indexOf(mon);
+  if (monthIndex === -1) return value;
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${day}`;
+};
+
+export { toISODate };
