@@ -8,6 +8,7 @@ import {
   Divider,
   BottomNavigation,
 } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -24,6 +25,10 @@ import CTCB2BExchangeRate from "../../cw-generated-forms/CTCB2BExchangeRate";
 import CTCB2BCustomerSupplier from "../../cw-generated-forms/CTCB2BCustomerSupplier";
 import CTCB2BCurrencyPricing from "../../cw-generated-forms/CTCB2BCurrencyPricing";
 import Button from "../../components/CommonMUI/CustomButton";
+import {
+  setHeaderDetails,
+  setCurrentStep,
+} from "../../redux/slices/backToBackSlice";
 
 const steps = [
   { label: "Header", number: 1 },
@@ -93,6 +98,7 @@ export default function CreateB2BTradingContractPage() {
   const location = useLocation();
   const [activeStep, setActiveStep] = useState(0);
   const formRef = useRef(null);
+  const dispatch = useDispatch();
 
   const editContractData = location.state?.editContractData;
   const isEditMode = Boolean(editContractData);
@@ -104,12 +110,19 @@ export default function CreateB2BTradingContractPage() {
     }
     return {};
   });
+  const contractHeaderDetails = useSelector(
+    (state) => state.backToBack.contractForm.headerDetails,
+  );
+  const savedStateActiveStep = useSelector(
+    (state) => state.backToBack.contractForm.currentStep,
+  );
 
   // Contract items state
   const [contractItems, setContractItems] = useState(() => {
     return editContractData?.items?.length ? editContractData.items : [];
   });
   console.log(formData, ".........");
+  // adding a state [done, active, upcoming] to each step based on the current activeStep
   const computedSteps = steps.map((step, index) => ({
     ...step,
     state:
@@ -121,15 +134,27 @@ export default function CreateB2BTradingContractPage() {
   }));
 
   useEffect(() => {
+    setFormData((prevData) => ({
+      ...prevData,
+      ...contractHeaderDetails,
+    }));
+    setActiveStep(savedStateActiveStep || 0);
+  }, []);
+
+  useEffect(() => {
     console.log("Form Data Updated:", formData);
   }, [activeStep, formData, contractItems]);
 
   // Merges current form values into the formData state
   const mergeFormData = (newData) => {
+    const updatedFormData = { ...formData, ...newData };
     setFormData((prevData) => ({
       ...prevData,
       ...newData,
     }));
+    console.log(updatedFormData, "updatedFormData");
+    dispatch(setHeaderDetails(updatedFormData));
+    dispatch(setCurrentStep(activeStep + 1));
   };
 
   const handleNext = () => {
@@ -141,15 +166,16 @@ export default function CreateB2BTradingContractPage() {
     if (!success) {
       return; // Prevent moving to next step if validation fails
     }
-    if (formRef.current?.getValues) {
-      const currentStepData = formRef.current.getValues();
-      mergeFormData(currentStepData);
-    }
 
     // For Items step, capture the items
     if (activeStepLabel === "Items" && formRef.current?.getItems) {
       const items = formRef.current.getItems();
       setContractItems(items);
+    }
+
+    if (formRef.current?.getValues) {
+      const currentStepData = formRef.current.getValues();
+      mergeFormData(currentStepData);
     }
 
     if (activeStep < steps.length - 1) {

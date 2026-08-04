@@ -1,68 +1,196 @@
 /**
- * CTCB2BHeader - Generated Form Component
+ * CTCB2BHeader — Generated Form Component
  *
- * Variant field definitions are embedded at code generation time.
- * Lookups (dropdowns) are still fetched at runtime — requestOptions with Authorization header required.
+ * Full props, usage, initialData formats, and submit payload shape:
+ *   see GENERATED_FORM_PROPS.md in the CW Dynamic Form Code Generator extension.
  *
- * SETUP:
- *   npm install @cw/rds react react-dom
- *
- *   .npmrc:
- *     @cw:registry=https://pkgs.dev.azure.com/InctureProducts/_packaging/Workbox/npm/registry/
- *     always-auth=true
- *     //pkgs.dev.azure.com/.../:_authToken=${NPM_TOKEN}
- *
- *   Import RDS theme in your app entry:
- *     import '@cw/rds/dist/index.css';
- *
- *   IMPORTANT: This component uses CSS variables from RDS theme.
- *   Ensure the above CSS is imported to enable proper theming.
- *   Variables used: --primary-main, --primary-light, --grey-300, --text-primary, etc.
- *
- *   Vite proxy (vite.config.js):
- *     server: { proxy: { '/IDMServices': { target: 'https://<your-idm-host>', changeOrigin: true,
- *       rewrite: (p) => p.replace(/^\/IDMServices/, '/idm') } } }
- *
- * USAGE:
- *   <CTCB2BHeader
- *     requestOptions={{ headers: { Authorization: 'Bearer TOKEN' } }}
- *     onSubmit={(data) => console.log(data)}
- *     view="both"  // 'form' | 'list' | 'both' (default: 'both')
- *   />
- *
- *   // Pre-fill fields:
- *   <CTCB2BHeader
- *     initialData={{ FIELD_NAME: 'value' }}
- *     requestOptions={{ headers: { Authorization: 'Bearer TOKEN' } }}
- *   />
+ * Setup:
+ *   npm install @cw/rds react react-dom dayjs
+ *   import '@cw/rds/dist/index.css';
  */
 import { useState, useEffect, useMemo, useCallback, useRef, memo, forwardRef, useImperativeHandle } from 'react';
 import { Grid, Box } from '@cw/rds/layout';
-import { TextField, Switch, Autocomplete, FormControlLabel, Button } from '@cw/rds/inputs';
+import { TextField, Switch, Autocomplete, FormControlLabel, Button, Checkbox } from '@cw/rds/inputs';
 import DatePicker from '@cw/rds/DatePicker';
-import { TableContainer, IconButton, Typography } from '@cw/rds/data-display';
+import TimePicker from '@cw/rds/TimePicker';
+import DateTimePicker from '@cw/rds/DateTimePicker';
+import { TableContainer, IconButton, Chip } from '@cw/rds/data-display';
 import { Pencil, Trash } from '@cw/rds/icons';
 import dayjs from 'dayjs';
 
 // ─── Configuration ──────────────────────────────────────────────────────────────
 const NUMERIC_TYPES = new Set(['INTEGER', 'DECIMAL', 'BIGINT', 'FLOAT', 'DOUBLE']);
-// Fields with length above this threshold render as a multiline textarea
+const DECIMAL_TYPES = new Set(['DECIMAL', 'FLOAT', 'DOUBLE']);
 const TEXTAREA_THRESHOLD = 255;
-// Handles API variations: 'DATE', 'date', 'Date', 'DATETIME', 'TIMESTAMP', 'DatePicker', etc.
-const isDateType = (dataType, controlName) =>
-  dataType?.toUpperCase() === 'DATE' ||
-  dataType?.toUpperCase() === 'DATETIME' ||
-  dataType?.toUpperCase() === 'TIMESTAMP' ||
-  !!controlName?.toLowerCase().includes('date');
-// Detect ISO date strings so FormField can render DatePicker even if metadata check misses
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}|$)/;
+const SKIP_METADATA_FIELDS = new Set(['variantFieldId', 'columnId', 'columnName', 'variantId', 'variantName', 'definitionId', 'fields', '_id', 'id']);
 
-// Sanitize field names for CSS class names (kebab-case, no spaces or special chars)
-const sanitizeFieldName = (name) => {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// ─── Date/Time ──────────────────────────────────────────────────────────────────
+const DATE_TYPES = new Set(['DATE']);
+const DATETIME_TYPES = new Set(['DATETIME', 'TIMESTAMP']);
+const TIME_TYPES = new Set(['TIME']);
+const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
+const DEFAULT_DATETIME_FORMAT = 'DD/MM/YYYY HH:mm';
+const DEFAULT_TIME_FORMAT = 'HH:mm';
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+const EPOCH_RE = /^\d{10,}$/;
+
+// One of: 'date' | 'datetime' | 'time' | null
+const getPickerKind = (dataType, controlName) => {
+  const t = String(dataType || '').toUpperCase();
+  const c = String(controlName || '').toLowerCase();
+  if (TIME_TYPES.has(t) || (c.includes('time') && !c.includes('date'))) return 'time';
+  if (DATETIME_TYPES.has(t) || c.includes('datetime')) return 'datetime';
+  if (DATE_TYPES.has(t) || c.includes('date')) return 'date';
+  return null;
 };
 
-// Field definitions embedded at code generation time — no runtime variant API calls needed
+// Parse any date-ish input into a dayjs. Returns null when invalid/empty.
+const toDayjs = (value, kind) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (dayjs.isDayjs(value)) return value.isValid() ? value : null;
+  if (value instanceof Date) { const d = dayjs(value); return d.isValid() ? d : null; }
+  // Unwrap enriched-submit wrappers: { key, value } (from previous onSubmit payload)
+  if (typeof value === 'object' && !Array.isArray(value) && ('key' in value || 'value' in value)) {
+    return toDayjs(value.value ?? value.key, kind);
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const ms = value < 1e12 ? value * 1000 : value;
+    const d = dayjs(ms);
+    return d.isValid() ? d : null;
+  }
+  if (typeof value === 'string') {
+    if (kind === 'time' && TIME_RE.test(value)) {
+      const d = dayjs('1970-01-01T' + (value.length === 5 ? value + ':00' : value));
+      return d.isValid() ? d : null;
+    }
+    if (EPOCH_RE.test(value)) {
+      const n = Number(value);
+      const ms = n < 1e12 ? n * 1000 : n;
+      const d = dayjs(ms);
+      return d.isValid() ? d : null;
+    }
+    const d = dayjs(value);
+    return d.isValid() ? d : null;
+  }
+  return null;
+};
+
+// Serialize a dayjs value for the submit payload.
+// date/datetime → epoch ms (number); time → 'HH:mm:ss'.
+const serializeDateValue = (value, kind) => {
+  const d = dayjs.isDayjs(value) ? value : toDayjs(value, kind);
+  if (!d || !d.isValid()) return '';
+  return kind === 'time' ? d.format('HH:mm:ss') : d.valueOf();
+};
+
+// Single-value shortcuts only. Range-oriented shortcuts (Last Week, Last Month …)
+// belong to a future dateRange picker kind, not to the calendar/datetime pickers.
+const DATE_SHORTCUTS = [
+  { label: 'Today',               getValue: () => dayjs() },
+  { label: 'Yesterday',           getValue: () => dayjs().subtract(1, 'day') },
+  { label: 'Tomorrow',            getValue: () => dayjs().add(1, 'day') },
+  { label: 'Start of Month',      getValue: () => dayjs().startOf('month') },
+  { label: 'Start of Last Month', getValue: () => dayjs().subtract(1, 'month').startOf('month') },
+  { label: 'Reset',               getValue: () => null },
+];
+const DATETIME_SHORTCUTS = [
+  { label: 'Now',            getValue: () => dayjs() },
+  { label: 'Today 09:00',    getValue: () => dayjs().startOf('day').hour(9) },
+  { label: 'Tomorrow 09:00', getValue: () => dayjs().add(1, 'day').startOf('day').hour(9) },
+  { label: 'Start of Month', getValue: () => dayjs().startOf('month') },
+  { label: 'Reset',          getValue: () => null },
+];
+const TIME_SHORTCUTS = [
+  { label: 'Now',   getValue: () => dayjs() },
+  { label: 'Reset', getValue: () => null },
+];
+const SHORTCUTS_BY_KIND = { date: DATE_SHORTCUTS, datetime: DATETIME_SHORTCUTS, time: TIME_SHORTCUTS };
+const isValueEmpty = (value) => {
+  if (value === null || value === undefined || value === '') return true;
+  if (typeof value === 'string' && value.trim() === '') return true;
+  if (Array.isArray(value) && value.length === 0) return true;
+  if (dayjs.isDayjs(value) && !value.isValid()) return true;
+  if (value && typeof value === 'object' && !Array.isArray(value) && !dayjs.isDayjs(value)) {
+    if ('key' in value || 'value' in value) {
+      const keyEmpty = value.key === null || value.key === undefined || value.key === '';
+      const valEmpty = value.value === null || value.value === undefined || value.value === '';
+      return keyEmpty && valEmpty;
+    }
+  }
+  return false;
+};
+// Preserves all extras on the option (e.g. displayName, description) while
+// normalising the canonical key/value fields.
+const toLookupOption = (item) => {
+  if (item && typeof item === 'object' && !Array.isArray(item)) {
+    const key = item.key ?? item.value ?? '';
+    const value = item.value ?? item.key ?? '';
+    return { ...item, key, value };
+  }
+  if (item === null || item === undefined || item === '') return null;
+  return { key: item, value: item };
+};
+// Supported multi-select shapes:
+//   [{ key, value, ...extras }]        — array of full options
+//   ['a', 'b']                          — array of strings
+//   { key: [...], value: [...] }        — enriched wrapper with array values (round-trip)
+//   { value: [{...}, {...}] }           — enriched wrapper with array of options
+//   { key: 'a,b', value: 'A,B' }        — legacy comma-string wrapper
+//   'a,b'                               — comma-string
+// Supported single-select shapes:
+//   { key, value, ...extras }, 'a', number
+const normalizeLookupInitialValue = (raw, isMultiSelect) => {
+  if (isValueEmpty(raw)) return isMultiSelect ? [] : '';
+  if (isMultiSelect) {
+    if (Array.isArray(raw)) {
+      return raw.map(toLookupOption).filter((item) => item && !isValueEmpty(item));
+    }
+    if (raw && typeof raw === 'object' && !dayjs.isDayjs(raw)) {
+      if (Array.isArray(raw.value)) {
+        return raw.value.map(toLookupOption).filter((item) => item && !isValueEmpty(item));
+      }
+      if (Array.isArray(raw.key)) {
+        return raw.key.map(toLookupOption).filter((item) => item && !isValueEmpty(item));
+      }
+      const keys = String(raw.key ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+      const values = String(raw.value ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (keys.length > 1 || values.length > 1) {
+        const len = Math.max(keys.length, values.length);
+        return Array.from({ length: len }, (_, i) => ({
+          key: keys[i] ?? values[i] ?? '',
+          value: values[i] ?? keys[i] ?? '',
+        }));
+      }
+      const single = toLookupOption(raw);
+      return single && !isValueEmpty(single) ? [single] : [];
+    }
+    if (typeof raw === 'string') {
+      return raw.split(',').map((s) => s.trim()).filter(Boolean).map((s) => ({ key: s, value: s }));
+    }
+    return [];
+  }
+  if (Array.isArray(raw)) return toLookupOption(raw[0]) || '';
+  if (raw && typeof raw === 'object' && !dayjs.isDayjs(raw) && ('key' in raw || 'value' in raw)) {
+    return { ...raw, key: raw.key ?? '', value: raw.value ?? '' };
+  }
+  return raw;
+};
+const sanitizeNumericInput = (raw, dataType, maxLen) => {
+  let v = String(raw ?? '');
+  if (DECIMAL_TYPES.has(dataType)) {
+    v = v.replace(/[^0-9.]/g, '');
+    const parts = v.split('.');
+    if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+    const digits = v.replace(/\./g, '');
+    if (maxLen && digits.length > maxLen) return null;
+  } else {
+    v = v.replace(/\D/g, '');
+    if (maxLen && v.length > maxLen) return null;
+  }
+  return v;
+};
+const sanitizeFieldName = (name) => String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
 const EMBEDDED_VARIANT_DATA = [
   {
     "variantId": "9c58dfd3dd004aada6702449f83c7955",
@@ -403,8 +531,8 @@ const actionButtonsSx = { display: 'flex', gap: 0.5, justifyContent: 'center', a
 // ─── ListView Component ──────────────────────────────────────────────────────────
 export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick, formatValue, selectable = false, onSelectionChange }) => {
   const [selectedRows, setSelectedRows] = useState(new Set());
+  const [hoveredRow, setHoveredRow] = useState(null);
   
-  // Normalize data: handle both array and submit data format { fields: {...} }
   const normalizedData = useMemo(() => {
     if (!data) return [];
     if (data.fields && typeof data.fields === 'object' && !Array.isArray(data.fields)) return [data];
@@ -412,51 +540,48 @@ export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick
     return [];
   }, [data]);
   
-  // Auto-generate columns from first data entry if not provided
   const effectiveColumns = useMemo(() => {
     if (columns && columns.length > 0) return columns;
     if (normalizedData.length === 0) return [];
     const firstEntry = normalizedData[0];
-    // Detect submit data format (has fields property with field objects)
     if (firstEntry.fields && typeof firstEntry.fields === 'object') {
-      const autoColumns = [];
-      Object.keys(firstEntry.fields).forEach((fieldName) => {
-        const field = firstEntry.fields[fieldName];
-        autoColumns.push({ fieldName: fieldName, label: field.label || fieldName, key: fieldName });
-      });
-      return autoColumns;
+      return Object.keys(firstEntry.fields).map((fieldName) => ({
+        fieldName,
+        key: fieldName,
+        label: firstEntry.fields[fieldName]?.label || fieldName,
+      }));
     }
-    // For regular array data, auto-generate columns from object keys
-    const autoColumns = [];
-    Object.keys(firstEntry).forEach((key) => {
-      if (['variantFieldId', 'columnId', 'columnName', 'variantId', 'variantName', 'definitionId', 'fields', '_id', 'id'].includes(key)) return;
-      autoColumns.push({ fieldName: key, label: firstEntry[key]?.label || key, key: key });
-    });
-    return autoColumns;
+    return Object.keys(firstEntry)
+      .filter((key) => !SKIP_METADATA_FIELDS.has(key))
+      .map((key) => ({ fieldName: key, key, label: firstEntry[key]?.label || key }));
   }, [columns, normalizedData]);
   
   const hasActions = onEdit || onDelete;
   const hasCheckbox = selectable;
   const columnCount = (hasCheckbox ? 1 : 0) + effectiveColumns.length + (hasActions ? 1 : 0);
   
-  const handleSelectAll = useCallback((e) => {
-    if (e.target.checked) {
-      setSelectedRows(new Set(normalizedData.map((_, idx) => idx)));
-      if (onSelectionChange) onSelectionChange(normalizedData.map((_, idx) => idx));
-    } else {
-      setSelectedRows(new Set());
-      if (onSelectionChange) onSelectionChange([]);
-    }
+  const handleSelectAll = useCallback((checked) => {
+    const nextSelection = checked ? normalizedData.map((_, idx) => idx) : [];
+    setSelectedRows(new Set(nextSelection));
+    if (onSelectionChange) onSelectionChange(nextSelection);
   }, [normalizedData, onSelectionChange]);
   
   const handleSelectRow = useCallback((index, checked) => {
     setSelectedRows((prev) => {
       const next = new Set(prev);
-      if (checked) next.add(index); else next.delete(index);
-      if (onSelectionChange) onSelectionChange(Array.from(next));
+      if (checked) {
+        next.add(index);
+      } else {
+        next.delete(index);
+      }
+      const nextSelection = Array.from(next);
+      if (onSelectionChange) onSelectionChange(nextSelection);
       return next;
     });
   }, [onSelectionChange]);
+
+  const isAllSelected = normalizedData.length > 0 && selectedRows.size === normalizedData.length;
+  const isIndeterminate = selectedRows.size > 0 && selectedRows.size < normalizedData.length;
 
   return (
     <TableContainer sx={{ mt: 3 }} className="dynamic-form-table-container">
@@ -465,7 +590,12 @@ export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick
           <tr>
             {hasCheckbox && (
               <th style={{ ...thStyle, width: '50px', textAlign: 'center' }} data-column-name="checkbox">
-                <input type="checkbox" checked={normalizedData.length > 0 && selectedRows.size === normalizedData.length} onChange={handleSelectAll} style={{ cursor: 'pointer' }} />
+                <Checkbox
+                  checked={isAllSelected}
+                  indeterminate={isIndeterminate}
+                  onChange={(_, checked) => handleSelectAll(checked)}
+                  inputProps={{ 'aria-label': 'Select all rows' }}
+                />
               </th>
             )}
             {effectiveColumns.map((col) => {
@@ -484,10 +614,17 @@ export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick
               const entryId = entry._id || entry.id || entry.variantId || index;
               const isSelected = selectedRows.has(index);
               return (
-                <tr key={entryId} onClick={() => onRowClick && onRowClick(entry, index)} style={{ cursor: onRowClick ? 'pointer' : 'default', backgroundColor: isSelected ? 'var(--primary-light, #e3f2fd)' : 'transparent' }} data-row-index={index} data-entry-id={entryId} data-selected={isSelected}>
+                <tr key={entryId} onClick={() => onRowClick && onRowClick(entry, index)} onMouseEnter={() => setHoveredRow(index)} onMouseLeave={() => setHoveredRow(null)} style={{ cursor: onRowClick ? 'pointer' : 'default', backgroundColor: isSelected || hoveredRow === index ? 'var(--grey-100, #f5f5f5)' : 'transparent' }} data-row-index={index} data-entry-id={entryId} data-selected={isSelected}>
                   {hasCheckbox && (
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <input type="checkbox" checked={isSelected} onChange={(e) => { e.stopPropagation(); handleSelectRow(index, e.target.checked); }} onClick={(e) => e.stopPropagation()} style={{ cursor: 'pointer' }} />
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={(_, checked) => {
+                          handleSelectRow(index, checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        inputProps={{ 'aria-label': 'Select row ' + (index + 1) }}
+                      />
                     </td>
                   )}
                   {effectiveColumns.map((col) => {
@@ -524,10 +661,54 @@ export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick
 };
 // ─── API Helpers ────────────────────────────────────────────────────────────────
 const apiFetch = async (url, headers) => {
-  const res = await fetch(url, { method: 'GET', headers });
+  const res = await fetch(url, { method: 'GET', headers: headers || {} });
   return res.json();
 };
+const getLookupMetadata = (meta) => {
+  const lookupType = String(meta?.lookupType || '').toUpperCase();
+  if (lookupType === 'VL') return meta?.staticValueHelpMetadata || null;
+  if (lookupType === 'API') return meta?.apiMetadata || null;
+  if (lookupType === 'DB') return meta?.dbMetadata || null;
+  return null;
+};
 
+const getLookupConstraints = (meta) => {
+  const lookupMetadata = getLookupMetadata(meta);
+  return lookupMetadata?.constraints || [];
+};
+
+const getLookupDependentFields = (meta) => {
+  const lookupMetadata = getLookupMetadata(meta);
+  return lookupMetadata?.dependentFields || [];
+};
+
+const getDisplayFieldName = (data) => {
+  const metadata = data?.metadata || [];
+  const displayMeta = metadata.find((item) => item?.isDisplayName);
+  return displayMeta?.mappedName || 'value';
+};
+
+const normalizeLookupOptions = (lookupData) => {
+  const rawValues = lookupData?.data?.values || [];
+  const displayFieldName = getDisplayFieldName(lookupData?.data);
+
+  return rawValues.map((item) => {
+    if (typeof item === 'string') {
+      return { key: item, value: item };
+    }
+
+    const displayValue = item?.[displayFieldName];
+    const normalizedValue = displayValue !== undefined && displayValue !== null && displayValue !== ''
+      ? displayValue
+      : item?.value ?? item?.key ?? '';
+
+    return {
+      ...item,
+      key: item?.key ?? normalizedValue,
+      value: normalizedValue,
+    };
+  });
+};
 const fetchLookupMeta = (lookupId, headers, baseUrl = '') =>
   apiFetch(`${baseUrl}/IDMServices/v1/lapi?lookupId=${encodeURIComponent(lookupId)}`, headers);
 
@@ -553,9 +734,8 @@ const useLookups = (fields, headers, baseUrl, readOnly = false) => {
     return m;
   }, [fields]);
 
-  // Initial load: fetch meta + unconstrained data for every lookup field
   useEffect(() => {
-    if (readOnly || !headers || fields.length === 0) return;
+    if (readOnly || fields.length === 0) return;
     fields.forEach(async (field) => {
       const { propertyDto, fieldName } = field;
       if (!propertyDto?.isLookup || !propertyDto?.lookupId) return;
@@ -566,11 +746,16 @@ const useLookups = (fields, headers, baseUrl, readOnly = false) => {
         const meta = metaRes?.data;
         if (!meta) return;
         lookupMetaRef.current = { ...lookupMetaRef.current, [fieldName]: meta };
-        const constraints = meta.staticValueHelpMetadata?.constraints;
+        const lookupMetadata = getLookupMetadata(meta);
+        const constraints = lookupMetadata?.constraints || [];
+
         if (!constraints || constraints.length === 0) {
           const dataRes = await fetchLookupData(propertyDto.lookupId, null, headers, baseUrl);
-          setLookupOptions((prev) => ({ ...prev, [fieldName]: dataRes?.data?.values || [] }));
+          setLookupOptions((prev) => ({ ...prev, [fieldName]: normalizeLookupOptions(dataRes) }));
+          return;
         }
+
+        return;
       } catch (err) {
         console.error(`[Lookup] meta error for ${fieldName}:`, err);
       }
@@ -580,9 +765,10 @@ const useLookups = (fields, headers, baseUrl, readOnly = false) => {
   const onDropdownChange = useCallback(async (changedFieldName, selectedValue) => {
     const meta = lookupMetaRef.current[changedFieldName];
     if (!meta) return;
-    const dependentFieldNames = meta.staticValueHelpMetadata?.dependentFields || [];
+    const dependentFieldNames = getLookupDependentFields(meta);
     if (dependentFieldNames.length === 0) return;
     const constraintValue = selectedValue?.key ?? selectedValue?.value ?? selectedValue;
+    if (constraintValue === undefined || constraintValue === null || constraintValue === '') return;
     for (const depColumnName of dependentFieldNames) {
       const depField = fieldsByColumn[depColumnName];
       if (!depField?.propertyDto?.isLookup || !depField.propertyDto?.lookupId) continue;
@@ -593,23 +779,37 @@ const useLookups = (fields, headers, baseUrl, readOnly = false) => {
           depMeta = metaRes?.data;
           if (depMeta) lookupMetaRef.current = { ...lookupMetaRef.current, [depField.fieldName]: depMeta };
         }
-        const constraints = depMeta?.staticValueHelpMetadata?.constraints;
-        const constraintParams = {};
-        (constraints || []).forEach((c) => { constraintParams[c.mappedName] = constraintValue; });
-        const dataRes = await fetchLookupData(depField.propertyDto.lookupId, constraints?.length ? constraintParams : null, headers, baseUrl);
-        setLookupOptions((prev) => ({ ...prev, [depField.fieldName]: dataRes?.data?.values || [] }));
+        const constraints = getLookupConstraints(depMeta);
+        let dataRes;
+
+        if (!constraints || constraints.length === 0) {
+          dataRes = await fetchLookupData(depField.propertyDto.lookupId, null, headers, baseUrl);
+        } else {
+          const constraintParams = {};
+          constraints.forEach((c) => {
+            if (c?.mappedName) constraintParams[c.mappedName] = constraintValue;
+          });
+
+          if (Object.keys(constraintParams).length === 0) {
+            return;
+          }
+
+          dataRes = await fetchLookupData(depField.propertyDto.lookupId, constraintParams, headers, baseUrl);
+        }
+
+        setLookupOptions((prev) => ({ ...prev, [depField.fieldName]: normalizeLookupOptions(dataRes) }));
       } catch (err) {
         console.error(`[Lookup] dependent error for ${depField.fieldName}:`, err);
       }
     }
   }, [fieldsByColumn, headers, baseUrl]);
 
-  return { lookupOptions, onDropdownChange, lookupMetaRef };
+  return { lookupOptions, setLookupOptions, onDropdownChange, lookupMetaRef };
 };
 
 // ─── Form Field ───────────────────────────────────────────────────────────
 const EMPTY_ARR = [];
-const FormField = memo(({ field, value, onChange, options, error, readOnly }) => {
+const FormField = memo(({ field, value, onChange, options, error, readOnly, dateFormat }) => {
   const { controlName, dataType, label, fieldName, maxLength, propertyDto } = field;
   const { isMandatory, isEditable, isVisible, isLookup, isMultiSelect } = propertyDto || {};
   const sanitizedFieldName = sanitizeFieldName(fieldName);
@@ -618,6 +818,7 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
   if (dataType === 'BOOLEAN') {
     return (
       <FormControlLabel
+        sx={{ alignItems: 'center' }}
         control={<Switch checked={!!value} onChange={(e) => onChange(fieldName, e.target.checked)} disabled={!isEditable || readOnly} inputProps={{ id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': value ? 'true' : 'false' }} />}
         label={label}
         componentsProps={{ typography: { id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label } }}
@@ -626,15 +827,29 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
   }
 
   if (isLookup) {
-    const selectedObj = (() => {
-      if (value && typeof value === 'object') return value;
-      if (typeof value === 'string' && value) {
-        const found = options.find((o) => o.value === value || o.key === value);
+    const toOption = (v) => {
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        const found = options.find((o) => o.key === v.key || o.value === v.value);
         if (found) return found;
-        if (readOnly) return { key: value, value: value };
+        const key = v.key ?? v.value ?? '';
+        const value = v.value ?? v.key ?? '';
+        return { ...v, key, value };
+      }
+      if (typeof v === 'string' && v) {
+        const found = options.find((o) => o.value === v || o.key === v);
+        return found || { key: v, value: v };
       }
       return null;
-    })();
+    };
+    const selectedForMulti = (Array.isArray(value) ? value : (value ? [value] : []))
+      .map(toOption)
+      .filter(Boolean);
+    const selectedObj = Array.isArray(value) ? null : toOption(value);
+    const multiSelectSx = isMultiSelect ? {
+      width: '100%',
+      '& .MuiOutlinedInput-root': { flexWrap: 'nowrap', overflow: 'hidden', alignItems: 'center' },
+      '& .MuiAutocomplete-tag': { maxWidth: 110 },
+    } : undefined;
     return (
       <Autocomplete
         options={options}
@@ -643,69 +858,152 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly }) =>
           if (!opt || !val) return false;
           return typeof val === 'string' ? (opt.value === val || opt.key === val) : opt.key === val.key;
         }}
-        value={selectedObj}
+        value={isMultiSelect ? selectedForMulti : selectedObj}
         onChange={(_, newVal) => onChange(fieldName, newVal)}
         disabled={!isEditable || readOnly}
         multiple={!!isMultiSelect}
-        renderInput={(params) => {
-          const selectedKey = selectedObj?.key || '';
+        disableCloseOnSelect={!!isMultiSelect}
+        sx={multiSelectSx}
+        renderTags={isMultiSelect ? (tagValue, getTagProps) => {
+          const limit = 2;
+          const visible = tagValue.slice(0, limit);
+          const hiddenCount = tagValue.length - limit;
           return (
-            <TextField {...params} label={label} required={!!isMandatory} error={!!error} helperText={error} size='medium' fullWidth name={fieldName} InputLabelProps={{ sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }} inputProps={{ ...params.inputProps, id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': selectedKey }} />
+            <>
+              {visible.map((option, index) => {
+                const { key, ...tagProps } = getTagProps({ index });
+                return (
+                  <Chip
+                    key={key}
+                    size='small'
+                    label={typeof option === 'string' ? option : (option?.value ?? '')}
+                    {...tagProps}
+                  />
+                );
+              })}
+              {hiddenCount > 0 && <Chip size='small' label={`+${hiddenCount}`} />}
+            </>
+          );
+        } : undefined}
+        renderOption={isMultiSelect ? (props, option, { selected }) => {
+          const { key: optKey, ...rest } = props;
+          return (
+            <li key={optKey ?? option?.key ?? option?.value} {...rest}>
+              <Checkbox checked={selected} style={{ marginRight: 8 }} />
+              {typeof option === 'string' ? option : option?.value ?? ''}
+            </li>
+          );
+        } : undefined}
+        renderInput={(params) => {
+          const selectedKey = isMultiSelect
+            ? selectedForMulti.map((o) => o?.key ?? o?.value ?? '').filter(Boolean).join(',')
+            : (selectedObj?.key || '');
+          return (
+            <TextField
+              {...params}
+              label={label}
+              required={!!isMandatory}
+              error={!!error}
+              helperText={error}
+              size='medium'
+              fullWidth
+              name={fieldName}
+              sx={error ? {
+                '& .MuiOutlinedInput-root': {
+                  flexWrap: isMultiSelect ? 'nowrap' : undefined,
+                  overflow: isMultiSelect ? 'hidden' : undefined,
+                  '& fieldset': { borderColor: '#d32f2f !important' },
+                  '&:hover fieldset': { borderColor: '#d32f2f !important' },
+                  '&.Mui-focused fieldset': { borderColor: '#d32f2f !important' },
+                },
+                '& .MuiInputLabel-root': { color: '#d32f2f' },
+                '& .MuiFormHelperText-root': { color: '#d32f2f' },
+              } : (isMultiSelect ? {
+                '& .MuiOutlinedInput-root': { flexWrap: 'nowrap', overflow: 'hidden' },
+              } : undefined)}
+              className={error ? 'dynamic-form-field-error' : undefined}
+              InputLabelProps={{ sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }}
+              inputProps={{ ...params.inputProps, id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': selectedKey }}
+            />
           );
         }}
       />
     );
   }
 
-  // isDateType: case-insensitive check; dayjs.isDayjs catches already-converted values;
-  // ISO_DATE_RE catches raw ISO strings when metadata is missing/unexpected
-  const looksLikeDate = isDateType(dataType, controlName) || dayjs.isDayjs(value) || (typeof value === 'string' && ISO_DATE_RE.test(value));
-  if (looksLikeDate) {
-    const dateValue = dayjs.isDayjs(value) ? value : (value ? dayjs(value) : null);
+  const pickerKind = getPickerKind(dataType, controlName);
+  if (pickerKind) {
+    const dateValue = toDayjs(value, pickerKind);
+    const Picker = pickerKind === 'time' ? TimePicker : pickerKind === 'datetime' ? DateTimePicker : DatePicker;
+    const format = pickerKind === 'time'
+      ? (dateFormat?.time || DEFAULT_TIME_FORMAT)
+      : pickerKind === 'datetime'
+        ? (dateFormat?.dateTime || DEFAULT_DATETIME_FORMAT)
+        : (dateFormat?.date || DEFAULT_DATE_FORMAT);
+    const dataAttrValue = dateValue
+      ? (pickerKind === 'time' ? dateValue.format('HH:mm:ss') : dateValue.valueOf())
+      : '';
     return (
-      <DatePicker
+      <Picker
         key={fieldName} label={label} required={!!isMandatory} error={!!error} helperText={error || ''}
         value={dateValue} onChange={(v) => onChange(fieldName, v)} disabled={!isEditable || readOnly}
-        slotProps={{ textField: { size: 'medium', fullWidth: true, name: fieldName, InputLabelProps: { sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }, inputProps: { id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': dateValue ? dateValue.format('YYYY-MM-DD') : '' } } }}
+        format={format}
+        slotProps={{
+          textField: {
+            size: 'medium', fullWidth: true, name: fieldName,
+            InputLabelProps: { sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label },
+            inputProps: { id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': dataAttrValue },
+          },
+          shortcuts: { items: SHORTCUTS_BY_KIND[pickerKind] },
+        }}
       />
     );
   }
 
+  const isNumeric = NUMERIC_TYPES.has(dataType);
+  const maxLen = maxLength ? Number(maxLength) : undefined;
   const currentValue = value ?? '';
   return (
     <TextField
       label={label} value={currentValue}
-      onChange={(e) => { const v = e.target.value; if (NUMERIC_TYPES.has(dataType) && maxLength && v.length > Number(maxLength)) return; onChange(fieldName, v); }}
-      required={!!isMandatory} disabled={!isEditable || readOnly} type={NUMERIC_TYPES.has(dataType) ? 'number' : 'text'}
-      inputProps={{ id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, maxLength: maxLength ? Number(maxLength) : undefined, 'data-value': currentValue }}
+      onChange={(e) => {
+        if (isNumeric) {
+          const next = sanitizeNumericInput(e.target.value, dataType, maxLen);
+          if (next === null) return;
+          onChange(fieldName, next);
+          return;
+        }
+        onChange(fieldName, e.target.value);
+      }}
+      onKeyDown={isNumeric ? (e) => { if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault(); } : undefined}
+      required={!!isMandatory} disabled={!isEditable || readOnly} type='text'
+      inputMode={isNumeric ? 'numeric' : undefined}
+      inputProps={{ id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, maxLength: isNumeric ? undefined : maxLen, inputMode: isNumeric ? 'numeric' : undefined, pattern: isNumeric ? (DECIMAL_TYPES.has(dataType) ? '[0-9.]*' : '[0-9]*') : undefined, 'data-value': currentValue }}
       InputLabelProps={{ sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label }}
-      multiline={!NUMERIC_TYPES.has(dataType) && !!maxLength && Number(maxLength) > TEXTAREA_THRESHOLD}
-      rows={!NUMERIC_TYPES.has(dataType) && !!maxLength && Number(maxLength) > TEXTAREA_THRESHOLD ? 4 : undefined}
+      multiline={!isNumeric && !!maxLength && Number(maxLength) > TEXTAREA_THRESHOLD}
+      rows={!isNumeric && !!maxLength && Number(maxLength) > TEXTAREA_THRESHOLD ? 4 : undefined}
       error={!!error} helperText={error} size='medium' fullWidth name={fieldName}
     />
   );
 });
 
 // ─── Main Component ──────────────────────────────────────────────────────────────
-const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData, requestOptions, onSubmit, onReset, columns = 2, title, showHeader = true, showFooter = true, readOnly = false }, ref) => {
+const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData, requestOptions, dateFormat, onSubmit, onReset, columns = 2, title, showHeader = true, showFooter = true, readOnly = false }, ref) => {
   const headers = requestOptions?.headers;
   const baseUrl = requestOptions?.baseUrl || '';
-  // Normalize initialData: handle both raw fields object and submit data format
+
   const normalizedInitialData = useMemo(() => {
     if (!initialData) return null;
-    // If initialData has a 'fields' property (submit format), extract fields
     if (initialData.fields && typeof initialData.fields === 'object' && !Array.isArray(initialData.fields)) {
       return initialData.fields;
     }
-    // Otherwise use initialData as-is
     return initialData;
   }, [initialData]);
-  // Variant data is embedded — initialize immediately, no runtime fetch needed
+
   const [variantData, setVariantData] = useState(() =>
     externalVariantData ?? (EMBEDDED_VARIANT_DATA.length === 1 ? EMBEDDED_VARIANT_DATA[0] : EMBEDDED_VARIANT_DATA)
   );
 
-  // Support externalVariantData prop override at runtime
   useEffect(() => {
     if (externalVariantData) setVariantData(externalVariantData);
   }, [externalVariantData]);
@@ -729,54 +1027,49 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
     return m;
   }, [fields]);
 
-  const { lookupOptions, onDropdownChange, lookupMetaRef } = useLookups(fields, headers, baseUrl, readOnly);
+  const { lookupOptions, setLookupOptions, onDropdownChange, lookupMetaRef } = useLookups(fields, headers, baseUrl, readOnly);
   const onDropdownChangeRef = useRef(onDropdownChange);
   useEffect(() => { onDropdownChangeRef.current = onDropdownChange; }, [onDropdownChange]);
 
-  // Pre-populate from initialData so DatePicker receives the correct value on the very first render
-  const [formValues, setFormValues] = useState(() => {
-    if (!normalizedInitialData) return {};
-    const init = {};
-    Object.entries(normalizedInitialData).forEach(([k, v]) => {
-      if (typeof v === 'string' && v && ISO_DATE_RE.test(v)) v = dayjs(v);
-      init[k] = v;
-    });
-    return init;
-  });
+  const [formValues, setFormValues] = useState(() => normalizedInitialData ? { ...normalizedInitialData } : {});
   const [validationErrors, setValidationErrors] = useState({});
   const processedInitialDataRef = useRef(false);
   const isAutoFillingRef = useRef(false);
 
-  // Initialise form values once fields are loaded
+  const normalizeValueForField = useCallback((field, raw) => {
+    if (field.propertyDto?.isLookup) {
+      return normalizeLookupInitialValue(raw, !!field.propertyDto?.isMultiSelect);
+    }
+    const kind = getPickerKind(field.dataType, field.controlName);
+    if (kind) return toDayjs(raw, kind);
+    if (raw && typeof raw === 'object' && !dayjs.isDayjs(raw) && !Array.isArray(raw)) {
+      return raw.value ?? raw.key ?? raw;
+    }
+    return raw;
+  }, []);
+
   useEffect(() => {
     if (fields.length === 0) return;
     setFormValues(() => {
       const init = {};
       fields.forEach((f) => {
         if (normalizedInitialData && f.fieldName in normalizedInitialData) {
-          let v = normalizedInitialData[f.fieldName];
-          // Handle submit data format with metadata (extract key or value)
-          if (v && typeof v === 'object' && !dayjs.isDayjs(v)) {
-            // For lookup fields, keep the { key, value } object
-            if (f.propertyDto?.isLookup && 'key' in v && 'value' in v) {
-              v = { key: v.key, value: v.value };
-            } else {
-              // For non-lookup fields, extract the value
-              v = v.value ?? v.key ?? v;
-            }
-          }
-          if (typeof v === 'string' && v && (isDateType(f.dataType, f.controlName) || ISO_DATE_RE.test(v))) v = dayjs(v);
-          init[f.fieldName] = v;
+          init[f.fieldName] = normalizeValueForField(f, normalizedInitialData[f.fieldName]);
         } else {
           const def = f.propertyDto?.defaultValue;
-          init[f.fieldName] = f.dataType === 'BOOLEAN' ? (def === 'true' || def === true) : (def ?? '');
+          if (f.dataType === 'BOOLEAN') {
+            init[f.fieldName] = def === 'true' || def === true;
+          } else if (f.propertyDto?.isLookup && f.propertyDto?.isMultiSelect) {
+            init[f.fieldName] = [];
+          } else {
+            init[f.fieldName] = def ?? '';
+          }
         }
       });
       return init;
     });
-  }, [fields, normalizedInitialData]);
+  }, [fields, normalizedInitialData, normalizeValueForField]);
 
-  // Sync initialData changes into form
   useEffect(() => {
     if (!normalizedInitialData) return;
     setFormValues((prev) => {
@@ -784,35 +1077,21 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
       Object.keys(normalizedInitialData).forEach((fn) => {
         const field = fieldsByName[fn];
         if (!field) return;
-        let v = normalizedInitialData[fn];
-        // Handle submit data format with metadata (extract key or value)
-        if (v && typeof v === 'object' && !dayjs.isDayjs(v)) {
-          // For lookup fields, keep the { key, value } object
-          if (field.propertyDto?.isLookup && 'key' in v && 'value' in v) {
-            v = { key: v.key, value: v.value };
-          } else {
-            // For non-lookup fields, extract the value
-            v = v.value ?? v.key ?? v;
-          }
-        }
-        if (typeof v === 'string' && v && (isDateType(field.dataType, field.controlName) || ISO_DATE_RE.test(v))) v = dayjs(v);
-        updated[fn] = v;
+        updated[fn] = normalizeValueForField(field, normalizedInitialData[fn]);
       });
       return updated;
     });
     processedInitialDataRef.current = false;
-  }, [normalizedInitialData, fieldsByName]);
+  }, [normalizedInitialData, fieldsByName, normalizeValueForField]);
 
-  // Auto-fill dependent lookups when initialData is provided
   useEffect(() => {
-    if (readOnly || !normalizedInitialData || !headers || processedInitialDataRef.current || fields.length === 0) return;
-    const lookupFields = fields.filter((f) => f.propertyDto?.isLookup && normalizedInitialData[f.fieldName]);
+    if (readOnly || !normalizedInitialData || processedInitialDataRef.current || fields.length === 0) return;
+    const lookupFields = fields.filter((f) => f.propertyDto?.isLookup && !isValueEmpty(normalizedInitialData[f.fieldName]));
     if (lookupFields.length === 0) { processedInitialDataRef.current = true; return; }
 
     const fill = async () => {
       isAutoFillingRef.current = true;
       try {
-        // Poll until metadata is ready (max 10s)
         await new Promise((resolve) => {
           const t0 = Date.now();
           const check = () => {
@@ -825,31 +1104,91 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
         if (processedInitialDataRef.current) return;
         const roots = lookupFields.filter((f) => !f.propertyDto?.isDependent);
         const deps  = lookupFields.filter((f) =>  f.propertyDto?.isDependent);
-        for (const f of roots) if (normalizedInitialData[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, normalizedInitialData[f.fieldName]);
-        for (const f of deps)  if (normalizedInitialData[f.fieldName]) await onDropdownChangeRef.current(f.fieldName, normalizedInitialData[f.fieldName]);
+        for (const f of roots) if (!isValueEmpty(normalizedInitialData[f.fieldName])) await onDropdownChangeRef.current(f.fieldName, normalizedInitialData[f.fieldName]);
+        for (const f of deps)  if (!isValueEmpty(normalizedInitialData[f.fieldName])) await onDropdownChangeRef.current(f.fieldName, normalizedInitialData[f.fieldName]);
         processedInitialDataRef.current = true;
       } finally {
         isAutoFillingRef.current = false;
       }
     };
     fill();
-  }, [initialData, headers, fields]);
+  }, [normalizedInitialData, headers, fields]);
+
+  const buildEnrichedData = useCallback(() => {
+    const enrichedData = {
+      variantId: variantData?.variantId || '',
+      variantName: variantData?.variantName || '',
+      definitionId: variantData?.definitionId || '',
+      fields: {}
+    };
+    fields.forEach((field) => {
+      const fieldValue = formValues[field.fieldName];
+      const isLookupField = field.propertyDto?.isLookup;
+      const base = {
+        variantFieldId: field.variantFieldId || '',
+        columnId: field.columnId || '',
+        columnName: field.columnName || '',
+        fieldName: field.fieldName || '',
+        label: field.label || '',
+      };
+      const pickerKind = getPickerKind(field.dataType, field.controlName);
+      if (isLookupField && field.propertyDto?.isMultiSelect && Array.isArray(fieldValue)) {
+        const items = fieldValue
+          .map((item) => {
+            if (item && typeof item === 'object') {
+              const k = item.key ?? item.value ?? '';
+              const v = item.value ?? item.key ?? '';
+              if (k === '' && v === '') return null;
+              return { ...item, key: k, value: v };
+            }
+            if (item === null || item === undefined || item === '') return null;
+            return { key: item, value: item };
+          })
+          .filter(Boolean);
+        enrichedData.fields[field.fieldName] = {
+          ...base,
+          key: items.map((item) => item.key),
+          value: items,
+        };
+      } else if (isLookupField && fieldValue && typeof fieldValue === 'object' && 'key' in fieldValue) {
+        enrichedData.fields[field.fieldName] = { ...base, key: fieldValue.key ?? '', value: fieldValue.value ?? '' };
+      } else if (pickerKind) {
+        const serialized = serializeDateValue(fieldValue, pickerKind);
+        enrichedData.fields[field.fieldName] = { ...base, key: serialized, value: serialized };
+      } else {
+        enrichedData.fields[field.fieldName] = { ...base, key: fieldValue ?? '', value: fieldValue ?? '' };
+      }
+    });
+    return enrichedData;
+  }, [formValues, fields, variantData]);
 
   const validateForm = useCallback(() => {
     const errors = {};
-    fields.forEach(({ fieldName, label, dataType, propertyDto }) => {
+    fields.forEach(({ fieldName, label, dataType, propertyDto, maxLength }) => {
       const { isMandatory, isVisible } = propertyDto || {};
-      if (!isVisible || !isMandatory || dataType === 'BOOLEAN') return;
+      if (isVisible === false || dataType === 'BOOLEAN') return;
       const v = formValues[fieldName];
-      if (v === null || v === undefined || v === '' || (typeof v === 'string' && !v.trim())) {
+      const empty = isValueEmpty(v);
+      if (isMandatory && empty) {
         errors[fieldName] = `${label} is required`;
-      } else if (NUMERIC_TYPES.has(dataType)) {
-        // For lookup fields, extract key or value property before validation
-        const valueToCheck = (typeof v === 'object' && v !== null && !dayjs.isDayjs(v))
+        return;
+      }
+      if (empty) return;
+      if (NUMERIC_TYPES.has(dataType)) {
+        const valueToCheck = (typeof v === 'object' && v !== null && !Array.isArray(v) && !dayjs.isDayjs(v))
           ? (v.key ?? v.value)
           : v;
-        if (isNaN(Number(valueToCheck))) {
+        const str = String(valueToCheck ?? '');
+        if (str === '' || isNaN(Number(str))) {
           errors[fieldName] = `${label} must be a valid number`;
+          return;
+        }
+        const maxLen = maxLength ? Number(maxLength) : undefined;
+        if (maxLen) {
+          const digitCount = DECIMAL_TYPES.has(dataType) ? str.replace(/\./g, '').length : str.length;
+          if (digitCount !== maxLen) {
+            errors[fieldName] = `${label} must be exactly ${maxLen} digits`;
+          }
         }
       }
     });
@@ -870,19 +1209,73 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
   const handleChange = useCallback((fieldName, value) => {
     const field = fieldsByName[fieldName];
     let raw;
-    // For lookup fields, preserve the entire { key, value } object
-    if (field?.propertyDto?.isLookup && value !== null && value !== undefined && typeof value === 'object' && !dayjs.isDayjs(value) && 'key' in value && 'value' in value) {
-      raw = { key: value.key, value: value.value };
-    }
-    // For non-lookup fields or other cases, extract value or use as-is
-    else if (value !== null && value !== undefined && typeof value === 'object' && !dayjs.isDayjs(value) && 'value' in value) {
+    if (field?.propertyDto?.isLookup && field?.propertyDto?.isMultiSelect && Array.isArray(value)) {
+      raw = value.map((item) => {
+        if (item && typeof item === 'object') {
+          const k = item.key ?? item.value ?? '';
+          const v = item.value ?? item.key ?? '';
+          return { ...item, key: k, value: v };
+        }
+        return { key: item, value: item };
+      });
+    } else if (field?.propertyDto?.isLookup && value && typeof value === 'object' && !dayjs.isDayjs(value) && 'key' in value && 'value' in value) {
+      raw = { ...value, key: value.key, value: value.value };
+    } else if (value && typeof value === 'object' && !dayjs.isDayjs(value) && 'value' in value) {
       raw = value.value;
-    }
-    else {
+    } else {
       raw = value ?? '';
     }
-    setFormValues((prev) => ({ ...prev, [fieldName]: raw }));
+
+    const getDependentChain = (currentFieldName, visited = new Set()) => {
+      const currentMeta = lookupMetaRef.current[currentFieldName];
+      if (!currentMeta || visited.has(currentFieldName)) return [];
+      visited.add(currentFieldName);
+
+      const directDependents = getLookupDependentFields(currentMeta);
+      if (directDependents.length === 0) return [];
+
+      const nested = [];
+      directDependents.forEach((depFieldName) => {
+        nested.push(depFieldName);
+        nested.push(...getDependentChain(depFieldName, visited));
+      });
+      return nested;
+    };
+
+    const dependentFieldNames = field?.propertyDto?.isLookup
+      ? getDependentChain(fieldName)
+      : [];
+
+    setFormValues((prev) => {
+      const next = { ...prev, [fieldName]: raw };
+      if (dependentFieldNames.length > 0) {
+        dependentFieldNames.forEach((depFieldName) => {
+          next[depFieldName] = '';
+        });
+      }
+      return next;
+    });
+
+    if (dependentFieldNames.length > 0) {
+      setLookupOptions((prev) => {
+        const next = { ...prev };
+        dependentFieldNames.forEach((depFieldName) => {
+          delete next[depFieldName];
+        });
+        return next;
+      });
+    }
+
     if (validationErrors[fieldName]) setValidationErrors((prev) => { const n = { ...prev }; delete n[fieldName]; return n; });
+    if (dependentFieldNames.length > 0) {
+      setValidationErrors((prev) => {
+        const n = { ...prev };
+        dependentFieldNames.forEach((depFieldName) => {
+          delete n[depFieldName];
+        });
+        return n;
+      });
+    }
     if (field?.propertyDto?.isLookup && raw && !isAutoFillingRef.current) onDropdownChange(fieldName, raw);
   }, [fieldsByName, onDropdownChange, validationErrors]);
 
@@ -896,49 +1289,9 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
       return false;
     }
     setValidationErrors({});
-    
-    // Build metadata-enriched payload
-    const enrichedData = {
-      variantId: variantData?.variantId || '',
-      variantName: variantData?.variantName || '',
-      definitionId: variantData?.definitionId || '',
-      fields: {}
-    };
-    
-    fields.forEach((field) => {
-      const fieldValue = formValues[field.fieldName];
-      const isLookupField = field.propertyDto?.isLookup;
-      
-      // For lookup fields, extract both key and value if available
-      if (isLookupField && fieldValue && typeof fieldValue === 'object' && 'key' in fieldValue) {
-        enrichedData.fields[field.fieldName] = {
-          variantFieldId: field.variantFieldId || '',
-          columnId: field.columnId || '',
-          columnName: field.columnName || '',
-          fieldName: field.fieldName || '',
-          label: field.label || '',
-          key: fieldValue.key ?? '',
-          value: fieldValue.value ?? ''
-        };
-      } else {
-        // For non-lookup fields or when value is not an object
-        enrichedData.fields[field.fieldName] = {
-          variantFieldId: field.variantFieldId || '',
-          columnId: field.columnId || '',
-          columnName: field.columnName || '',
-          fieldName: field.fieldName || '',
-          label: field.label || '',
-          key: fieldValue ?? '',
-          value: fieldValue ?? ''
-        };
-      }
-    });
-    
-    // Call custom onSubmit if provided with enriched data
-    if (onSubmit) onSubmit(enrichedData);
-
+    if (onSubmit) onSubmit(buildEnrichedData());
     return true;
-  }, [formValues, validateForm, handleReset, onSubmit, fields, variantData]);
+  }, [validateForm, buildEnrichedData, onSubmit]);
 
   useImperativeHandle(ref, () => ({
     validate: () => { const e = validateForm(); if (Object.keys(e).length) { setValidationErrors(e); return false; } return true; },
@@ -951,51 +1304,13 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
         return false;
       }
       setValidationErrors({});
-      
-      // Build enriched data with metadata (same as handleSubmit)
-      const enrichedData = {
-        variantId: variantData?.variantId || '',
-        variantName: variantData?.variantName || '',
-        definitionId: variantData?.definitionId || '',
-        fields: {}
-      };
-      
-      fields.forEach((field) => {
-        const fieldValue = formValues[field.fieldName];
-        const isLookupField = field.propertyDto?.isLookup;
-        
-        // For lookup fields, extract both key and value if available
-        if (isLookupField && fieldValue && typeof fieldValue === 'object' && 'key' in fieldValue) {
-          enrichedData.fields[field.fieldName] = {
-            variantFieldId: field.variantFieldId || '',
-            columnId: field.columnId || '',
-            columnName: field.columnName || '',
-            fieldName: field.fieldName || '',
-            label: field.label || '',
-            key: fieldValue.key ?? '',
-            value: fieldValue.value ?? ''
-          };
-        } else {
-          // For non-lookup fields, key and value are the same
-          enrichedData.fields[field.fieldName] = {
-            variantFieldId: field.variantFieldId || '',
-            columnId: field.columnId || '',
-            columnName: field.columnName || '',
-            fieldName: field.fieldName || '',
-            label: field.label || '',
-            key: fieldValue ?? '',
-            value: fieldValue ?? ''
-          };
-        }
-      });
-      
-      if (onSubmit) onSubmit(enrichedData);
+      if (onSubmit) onSubmit(buildEnrichedData());
       return true;
     },
     reset: handleReset,
     getValues: () => formValues,
     setValues: (vals) => setFormValues((prev) => ({ ...prev, ...vals })),
-  }), [formValues, validateForm, handleReset, onSubmit, fields, variantData]);
+  }), [formValues, validateForm, buildEnrichedData, handleReset, onSubmit]);
 
   const gridSize = useMemo(() => {
     const n = columns || 2;
@@ -1007,15 +1322,11 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
 
   return (
     <Box>
-      {/* Header */}
       {showHeader && (
         <Box sx={headerSx}>
           <h2 style={headingStyle}>{title || 'Dynamic Form'}</h2>
-
         </Box>
       )}
-
-      {/* Form */}
       <form onSubmit={handleSubmit} noValidate>
         <Grid container spacing={2}>
           {fields.map((field) => (
@@ -1027,6 +1338,7 @@ const CTCB2BHeader = forwardRef(({ variantData: externalVariantData, initialData
                 options={lookupOptions[field.fieldName] || EMPTY_ARR}
                 error={validationErrors[field.fieldName]}
                 readOnly={readOnly}
+                dateFormat={dateFormat}
               />
             </Grid>
           ))}

@@ -83,12 +83,12 @@ const Button = ({ type, onClick, icon, children, options }) => {
         >
           {options.map((option, index) => (
             <MenuItem
-              key={option.key ?? index}
+              key={option?.key ?? index}
               onClick={() => handleOptionClick(option)}
-              disabled={option.disabled}
+              disabled={option?.disabled}
             >
-              {option.icon && <ListItemIcon>{option.icon}</ListItemIcon>}
-              <ListItemText>{option.label}</ListItemText>
+              {option?.icon && <ListItemIcon>{option?.icon}</ListItemIcon>}
+              <ListItemText>{option?.label}</ListItemText>
             </MenuItem>
           ))}
         </Menu>

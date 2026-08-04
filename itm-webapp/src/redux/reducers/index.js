@@ -23,6 +23,6 @@ const rootReducer = combineReducers({
   invoices: invoicesReducer,
   adminConsole: adminConsoleReducer,
   user: userReducer,
-});
+}); 
 
 export default rootReducer;
