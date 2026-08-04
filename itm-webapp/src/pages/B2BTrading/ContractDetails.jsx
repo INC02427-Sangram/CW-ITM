@@ -155,8 +155,8 @@ export default function ContractDetails({ contractData }) {
   const statusStyle =
     STATUS_STYLES[resolvedContractData.status] ||
     STATUS_STYLES["Pending Approval"];
-  console.log(location.state?.contractData, "........");
-  return (
+
+    return (
     <div className="outermost-container">
       <Box
         sx={{

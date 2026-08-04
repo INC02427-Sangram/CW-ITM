@@ -6,7 +6,7 @@ import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
 import ReusableTile from "../../components/Common/ReusableTile";
 import ReusableDataGrid from "../../components/Common/ReusableDataGrid";
-import { Add, ViewIcon } from "@cw/rds/icons";
+import { Add, Visibility, Pencil } from "@cw/rds/icons";
 import {
   B2BContractStatCards,
   B2BContractItemsStatCards,
@@ -85,20 +85,39 @@ export default function B2BTradingContracts() {
   const [contractData, setContractData] = useState(null);
   const filterRef = useRef();
   const [selectedContracts, setSelectedContracts] = useState([]);
+  const [selectedRowData, setSelectedRowData] = useState(null);
   const [tabs, setTabs] = useState("contracts");
   const formatValue = (col, value) => {
     if (col.fieldName === "actions") {
       return (
-        <IconButton
-          size="small"
-          onClick={() =>
-            navigate("contract-details", {
-              state: { contractData: value },
-            })
-          }
-        >
-          <ViewIcon />
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Tooltip title="View Contract">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("contract-details", {
+                  state: { contractData: value },
+                });
+              }}
+            >
+              <Visibility />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Edit Contract">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("create-contract", {
+                  state: { editContractData: value },
+                });
+              }}
+            >
+              <Pencil />
+            </IconButton>
+          </Tooltip>
+        </Box>
       );
     }
     if (col.fieldName === "status") {
@@ -188,11 +207,12 @@ export default function B2BTradingContracts() {
           selectable={true}
           onSelectionChange={setSelectedContracts}
           formatValue={formatValue}
-          onRowClick={(row) =>
+          onRowClick={(row) => {
             navigate("contract-details", {
               state: { contractData: row },
-            })
-          }
+            });
+            setSelectedRowData(row);
+          }}
         />
       </Box>
     </Box>

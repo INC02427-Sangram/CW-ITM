@@ -4,10 +4,11 @@ import { Box } from "@mui/material";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
-import { Add } from "@cw/rds/icons";
+import { Add, GridView, Mail, Pencil } from "@cw/rds/icons";
 import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
 import B2BTradingContracts from "./B2BTradingContracts";
 import B2BTradingContractsItems from "./B2BTradingContractsItems";
+import { Grid } from "@cw/rds/layout";
 
 export default function BackToBackTrading() {
   const navigate = useNavigate();
@@ -24,18 +25,30 @@ export default function BackToBackTrading() {
         boxSizing: "border-box",
       }}
     >
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center">
         <ReusableTypography variant="h6" sx={{ fontWeight: 600 }}>
           Back to Back Trading Dashboard
         </ReusableTypography>
         <ReusableButtons
           type="button"
           icon={<Add />}
-          onClick={() => navigate("create-contract")}
+          options={[
+            {
+              label: "Create Manually",
+              onClick: () => navigate("create-contract"),
+              icon: <Pencil />,
+            },
+            {
+              label: "Create From Excel",
+              onClick: () => console.log("Create From Excel"),
+              icon: <GridView />,
+            },
+            {
+              label: "Create From Email",
+              onClick: () => console.log("Create From Email"),
+              icon: <Mail />,
+            },
+          ]}
         >
           New B2B Contract
         </ReusableButtons>

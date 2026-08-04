@@ -14,7 +14,7 @@ const buildFormBuilderFromContractData = (contractData) => {
     contractData.incoterms || "",
   ).split(" - ");
   const incoLoc = incoLocParts.join(" - ").trim();
-  console.log(contractData, ",,,,,,,,,,,,,,");
+
   return {
     ITM_CTC_PERSON: contractData.personResponsible || "",
     ITM_CTC_DOC_DATE: toISODate(contractData.documentDate) || "",
