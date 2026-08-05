@@ -25,8 +25,11 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Add, Copy } from "@cw/rds/icons";
 import CallSplit from "@mui/icons-material/CallSplit";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import ViewAgendaIcon from "@mui/icons-material/ViewAgenda";
 import ReusableToast from "../../components/Common/ReusableToast";
 import Button from "../../components/CommonMUI/CustomButton";
+import MaterialAccordion from "../../components/Common/MaterialAccordion";
 const MATERIAL_OPTIONS = [
   "Glycol - 2114",
   "Lens - XJ720",
@@ -238,6 +241,10 @@ const AddMaterial = forwardRef(
       anchorEl: null,
       rowId: null,
     });
+    const [viewMode, setViewMode] = useState("table");
+
+    const toggleView = () =>
+      setViewMode((prev) => (prev === "table" ? "accordion" : "table"));
 
     const updateRow = (id, field, value) => {
       setRows((prev) =>
@@ -553,7 +560,7 @@ const AddMaterial = forwardRef(
     );
 
     return (
-      <Box>
+      <Box sx={{ p: 2,overflow:"auto",maxHeight:"fit-content" }}>
         <ReusableToast
           open={toastOpen}
           severity={toastSeverity}
@@ -565,77 +572,116 @@ const AddMaterial = forwardRef(
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            position: "sticky",
+            top: 0,
+            // backgroundColor: "#f5f5f5",
             mb: 2,
           }}
         >
           <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#2f3136" }}>
             Contract Items
           </Typography>
-          {!readOnly && !disableAddMaterial && (
-            <Button
-              variant="outlined"
-              startIcon={<Add sx={{ fontSize: 18 }} />}
-              onClick={handleAddMaterial}
-            >
-              Add Material
-            </Button>
-          )}
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {!readOnly && (
+              <Button
+                variant={viewMode === "table" ? "outlined" : "outlined"}
+                startIcon={<ViewAgendaIcon sx={{ fontSize: 18 }} />}
+                onClick={toggleView}
+              >
+                {"Switch View"}
+              </Button>
+            )}
+            {!readOnly && !disableAddMaterial && (
+              <Button
+                variant="outlined"
+                startIcon={<Add sx={{ fontSize: 18 }} />}
+                onClick={handleAddMaterial}
+              >
+                Add Material
+              </Button>
+            )}
+          </Box>
         </Box>
-
-        <TableContainer
-          sx={{ border: "1px solid #d9dee7", borderRadius: "6px" }}
-        >
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#9aa1ac" }}>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.key}
-                    align={column.key === "actions" ? "center" : "left"}
-                    sx={{
-                      borderColor:"black",
-                      color: "#ffffff",
-                      fontWeight: 600,
-                      fontSize: 13,
-                      overflow: "hidden",
-                      lineHeight: 1.2,
-                      minWidth: `${column.width}px`,
-                    }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    align="center"
-                    sx={{ py: 3, color: "#7b818f" }}
-                  >
-                    No materials added yet
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rows.map((row, index) => (
-                  <TableRow key={row.id}>
+        {/* Tbale or Accordion Container */}
+        <Box sx={{maxHeight:"fit-content",maxHeight:"50dvh",overflowY:"auto",padding:2}}>
+          {viewMode === "table" ? (
+            <TableContainer
+              sx={{ border: "1px solid #d9dee7", borderRadius: "6px" }}
+            >
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#9aa1ac" }}>
                     {columns.map((column) => (
                       <TableCell
-                        key={`${row.id}-${column.key}`}
+                        key={column.key}
                         align={column.key === "actions" ? "center" : "left"}
-                        sx={cellSx}
+                        sx={{
+                          borderColor: "black",
+                          color: "#ffffff",
+                          fontWeight: 600,
+                          fontSize: 13,
+                          overflow: "hidden",
+                          lineHeight: 1.2,
+                          minWidth: `${column.width}px`,
+                        }}
                       >
-                        {renderCell(row, index, column.key)}
+                        {column.label}
                       </TableCell>
                     ))}
                   </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        align="center"
+                        sx={{ py: 3, color: "#7b818f" }}
+                      >
+                        No materials added yet
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rows.map((row, index) => (
+                      <TableRow key={row.id}>
+                        {columns.map((column) => (
+                          <TableCell
+                            key={`${row.id}-${column.key}`}
+                            align={column.key === "actions" ? "center" : "left"}
+                            sx={cellSx}
+                          >
+                            {renderCell(row, index, column.key)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {rows.length === 0 ? (
+                <Box sx={{ py: 3, color: "#7b818f", textAlign: "center" }}>
+                  No materials added yet
+                </Box>
+              ) : (
+                rows.map((row, index) => (
+                  <MaterialAccordion
+                    key={row.id}
+                    row={row}
+                    index={index}
+                    columns={columns}
+                    renderCell={renderCell}
+                    renderEditableField={renderEditableField}
+                    renderReadOnlyField={renderReadOnlyField}
+                    readOnly={readOnly}
+                  />
                 ))
               )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </Box>
+          )}
+        </Box>
 
         <Dialog
           open={expenseDialog.open}
@@ -821,10 +867,7 @@ const AddMaterial = forwardRef(
             </Menu>
           </DialogContent>
           <DialogActions sx={{ px: 3, pb: 2.5 }}>
-            <Button
-              variant="outlined"
-              onClick={handleCloseExpenseDialog}
-            >
+            <Button variant="outlined" onClick={handleCloseExpenseDialog}>
               Cancel
             </Button>
             <Button
