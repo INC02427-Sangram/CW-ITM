@@ -121,7 +121,7 @@ export default function CreateB2BTradingContractPage() {
   const [contractItems, setContractItems] = useState(() => {
     return editContractData?.items?.length ? editContractData.items : [];
   });
-  console.log(formData, ".........");
+
   // adding a state [done, active, upcoming] to each step based on the current activeStep
   const computedSteps = steps.map((step, index) => ({
     ...step,

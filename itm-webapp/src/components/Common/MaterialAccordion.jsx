@@ -78,7 +78,7 @@ const MaterialAccordion = ({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateColumns: "repeat(4, 1fr)",
             gap: 2,
           }}
         >

@@ -6,8 +6,12 @@ import { lazy } from "react";
  */
 
 // Lazy load B2B Trading nested components
-const CreateB2BTradingContract = lazy(() => import("../pages/B2BTrading/CreateB2BTradingContract"));
-const ContractDetails = lazy(() => import("../pages/B2BTrading/ContractDetails"));
+const CreateB2BTradingContract = lazy(
+  () => import("../pages/B2BTrading/CreateB2BTradingContract"),
+);
+const ContractDetails = lazy(
+  () => import("../pages/B2BTrading/ContractDetails"),
+);
 
 /**
  * B2B Trading nested routes
@@ -28,3 +32,13 @@ export const b2bTradingRoutes = [
     component: ContractDetails,
   },
 ];
+
+export const b2bTradingStatusStyles = {
+  Draft: { color: "#FFC107", backgroundColor: "#FFF3CD" },
+  "Approval Pending": { color: "#084298", backgroundColor: "#CFE2FF" },
+  Approved: { color: "#198754", backgroundColor: "#D1E7DD" },
+  "Orders Created": { color: "#0F5132", backgroundColor: "#D1E7DD" },
+  "Posted to SAP": { color: "#198754", backgroundColor: "#D1E7DD" },
+  Expired: { color: "#DC3545", backgroundColor: "#F8D7DA" },
+  Cancelled: { color: "#6C757D", backgroundColor: "#DEE2E6" },
+};

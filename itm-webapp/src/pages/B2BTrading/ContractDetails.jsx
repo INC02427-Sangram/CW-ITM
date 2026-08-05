@@ -13,6 +13,7 @@ import ReusableTypography from "../../components/Common/ReusableTypography";
 import AddMaterial from "./AddMaterial";
 import { ArrowBack } from "@cw/rds/icons";
 import Button from "../../components/CommonMUI/CustomButton";
+import { b2bTradingStatusStyles } from "../../config/b2btrading.routes.config";
 // Dummy data source — in a real integration this would come from the contract API response.
 const dummyContractDetails = {
   contractNumber: "BTBC-882-2024",
@@ -60,15 +61,25 @@ const dummyContractDetails = {
 
 const CONTRACT_DETAIL_FIELDS = [
   { label: "Contract Number", key: "contractNumber" },
-  { label: "Supplier", key: "supplier" },
-  { label: "Validity Period", key: "validityPeriod" },
-  { label: "Currency", key: "currency" },
-  { label: "Incoterms", key: "incoterms" },
-  { label: "Payment Terms", key: "paymentTerms" },
   { label: "Person Responsible", key: "personResponsible" },
-  { label: "Purchasing Organization", key: "purchasingOrganization" },
-  { label: "Exchange Rate Type", key: "exchangeRateType" },
+  { label: "Validity Period", key: "validityPeriod" },
   { label: "Document Date", key: "documentDate" },
+  { label: "Customer", key: "customer" },
+  { label: "Sales Organization", key: "salesOrg" },
+  { label: "Distribution Channel", key: "distChannel" },
+  { label: "Division", key: "division" },
+  { label: "Supplier", key: "supplier" },
+  { label: "Purchasing Organization", key: "purchaseOrg" },
+  { label: "Purchase Group", key: "purchaseGroup" },
+  { label: "Purchase Currency", key: "purchasingCurrency" },
+  { label: "Purchase Incoterms", key: "purchaseIncoterms" },
+  { label: "Purchase Incoterms Location", key: "purchaseIncotermsLocation" },
+  { label: "Purchase Payment Terms", key: "purchasePaymentTerms" },
+  { label: "Sales Currency", key: "salesCurrency" },
+  { label: "Sales Incoterms", key: "salesIncoterms" },
+  { label: "Sales Incoterms Location", key: "salesIncotermsLocation" },
+  { label: "Sales Payment Terms", key: "salesPaymentTerms" },
+  { label: "Exchange Rate Type", key: "exchangeRateType" },
 ];
 
 const SUMMARY_FIELDS = [
@@ -84,13 +95,6 @@ const SUMMARY_FIELDS = [
     emphasize: true,
   },
 ];
-
-const STATUS_STYLES = {
-  Active: { color: "#1e7d32", backgroundColor: "#e8f5e9" },
-  "Pending Approval": { color: "#2454b8", backgroundColor: "#e6edfb" },
-  Expired: { color: "#c0392b", backgroundColor: "#fdecea" },
-  "Expiring Soon": { color: "#b56a1f", backgroundColor: "#fdf1e3" },
-};
 
 const parseNumeric = (value) =>
   Number(String(value ?? "").replace(/[^0-9.]/g, "")) || 0;
@@ -124,11 +128,16 @@ const buildContractDataFromRow = (row) => {
     contractNumber: row.ITM_CTC_ID || "N/A",
     status: row.status || "N/A",
     supplier: row.supplier || "N/A",
-    currency: row.currency || "N/A",
+    purchasingCurrency: row.purchasingCurrency || "N/A",
+    salesCurrency: row.salesCurrency || "N/A",
     validityFrom: validityFrom || "N/A",
     validityTo: validityTo || "N/A",
-    incoterms: row.incoterms || "N/A",
-    paymentTerms: row.paymentTerms || "N/A",
+    purchaseIncoterms: row.purchaseIncoterms || "N/A",
+    purchaseIncotermsLocation: row.purchaseIncotermsLocation || "N/A",
+    purchasePaymentTerms: row.purchasePaymentTerms || "N/A",
+    salesIncoterms: row.salesIncoterms || "N/A",
+    salesIncotermsLocation: row.salesIncotermsLocation || "N/A",
+    salesPaymentTerms: row.salesPaymentTerms || "N/A",
     personResponsible: row.personResponsible || "N/A",
     purchasingOrganization: row.purchasingOrganization || "N/A",
     exchangeRateType: row.exchangeRateType || "N/A",
@@ -153,11 +162,77 @@ export default function ContractDetails({ contractData }) {
     validityPeriod: `${resolvedContractData.validityFrom}  -  ${resolvedContractData.validityTo}`,
   };
   const statusStyle =
-    STATUS_STYLES[resolvedContractData.status] ||
-    STATUS_STYLES["Pending Approval"];
+    b2bTradingStatusStyles[resolvedContractData.status] ||
+    b2bTradingStatusStyles["Draft"];
 
-    return (
-    <div className="outermost-container">
+  const buttonConfig = {
+    draft: {
+      label: "Save & Submit For Approval",
+      variant: "outlined",
+      endIcon: <SendIcon sx={{ fontSize: 16 }} />,
+      onClick: () => {
+        navigate("../create-contract", {
+          state: { editContractData: resolvedContractData },
+        });
+      },
+    },
+    "approval pending": {
+      label: "Submit For Approval",
+      variant: "contained",
+      onClick: () => {
+        navigate("../create-contract", {
+          state: { editContractData: resolvedContractData },
+        });
+      },
+    },
+    approved: {
+      label: "Created Orders",
+      variant: "contained",
+    },
+    "orders created": {
+      label: "Post to SAP",
+      variant: "contained",
+      endIcon: <SendIcon sx={{ fontSize: 16 }} />,
+      onClick: () => {
+        navigate("../create-contract", {
+          state: { editContractData: resolvedContractData },
+        });
+      },
+    },
+    "posted to sap": {
+      label: "Submit & Create Purchase Order",
+      variant: "contained",
+      endIcon: <SendIcon sx={{ fontSize: 16 }} />,
+      onClick: () => {
+        navigate("../create-contract", {
+          state: { editContractData: resolvedContractData },
+        });
+      },
+    },
+    expired: {
+      label: "Submit & Create Purchase Order",
+      variant: "contained",
+      endIcon: <SendIcon sx={{ fontSize: 16 }} />,
+      onClick: () => {
+        navigate("../create-contract", {
+          state: { editContractData: resolvedContractData },
+        });
+      },
+    },
+    cancelled: {
+      label: "Submit & Create Purchase Order",
+      variant: "contained",
+      endIcon: <SendIcon sx={{ fontSize: 16 }} />,
+      onClick: () => {
+        navigate("../create-contract", {
+          state: { editContractData: resolvedContractData },
+        });
+      },
+    },
+  };
+
+  return (
+    <Box className="outermost-container" sx={{ pb: 10 }}>
       <Box
         sx={{
           display: "flex",
@@ -201,6 +276,10 @@ export default function ContractDetails({ contractData }) {
               state: { editContractData: resolvedContractData },
             })
           }
+          disabled={
+            resolvedContractData.status !== "Draft" &&
+            resolvedContractData.status !== "Pending Approval"
+          }
           sx={{
             textTransform: "none",
             fontWeight: 600,
@@ -240,7 +319,7 @@ export default function ContractDetails({ contractData }) {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" },
+            gridTemplateColumns: { xs: "1fr", sm: "repeat(5, 1fr)" },
             rowGap: 2.5,
             columnGap: 3,
           }}
@@ -280,7 +359,6 @@ export default function ContractDetails({ contractData }) {
           border: "1px solid #d9dee7",
           borderRadius: "6px",
           p: 2.5,
-          mb: 3,
         }}
       >
         {SUMMARY_FIELDS.map((field) => (
@@ -318,22 +396,45 @@ export default function ContractDetails({ contractData }) {
       <BottomNavigation
         sx={{
           flexShrink: 0,
-          width: "100%",
+          width: "calc(100% - 4dvw)",
           height: "auto",
-          py: 1,
+          px: { xs: 2, sm: 3 },
+          py: 2,
           display: "flex",
           justifyContent: "flex-end",
-          gap: 1.5,
+          backgroundColor: "#fff",
+          borderTop: "1px solid #e3e7ee",
+          boxShadow: "0px 0px 10px 0px rgba(0, 0, 0, 0.2)",
+          position: "fixed",
+          bottom: 0,
+          right: 0,
+          boxSizing: "border-box",
         }}
       >
-        <Button variant="outlined">Save & Submit For Approval</Button>
-        <Button
-          variant="contained"
-          endIcon={<SendIcon sx={{ fontSize: 16 }} />}
-        >
-          Submit & Create Purchase Order
-        </Button>
+        {buttonConfig[resolvedContractData.status?.toLowerCase()]?.variant ===
+          "outlined" && (
+          <Button
+            variant="outlined"
+            onClick={
+              buttonConfig[resolvedContractData.status?.toLowerCase()]?.onClick
+            }
+          >
+            {buttonConfig[resolvedContractData.status?.toLowerCase()]?.label}
+          </Button>
+        )}
+        {buttonConfig[resolvedContractData.status?.toLowerCase()]?.variant ===
+          "contained" && (
+          <Button
+            variant="contained"
+            onClick={
+              buttonConfig[resolvedContractData.status?.toLowerCase()]?.onClick
+            }
+          >
+            {buttonConfig[resolvedContractData.status?.toLowerCase()]?.label}
+            {buttonConfig[resolvedContractData.status?.toLowerCase()]?.endIcon}
+          </Button>
+        )}
       </BottomNavigation>
-    </div>
+    </Box>
   );
 }

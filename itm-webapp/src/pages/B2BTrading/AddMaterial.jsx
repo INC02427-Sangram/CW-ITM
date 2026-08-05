@@ -157,10 +157,10 @@ const toExternalRow = (row) => {
 
 const createEmptyExpenseRow = () => ({
   id: nextRowId(),
-  name: "",
-  amount: "",
-  currency: "",
-  per: "",
+  expenseName: "",
+  expenseAmount: "",
+  expenseCurrency: "",
+  expensePer: "",
 });
 
 const cellSx = {
@@ -376,33 +376,39 @@ const AddMaterial = forwardRef(
         rows: [...prev.rows, createEmptyExpenseRow()],
       }));
 
-    const handleUpdateExpenseRow = (id, field, value) =>
+    const handleUpdateExpenseRow = (expenseId, field, value) =>
       setExpenseDialog((prev) => ({
         ...prev,
         rows: prev.rows.map((expenseRow) =>
-          expenseRow.id === id ? { ...expenseRow, [field]: value } : expenseRow,
+          expenseRow.expenseId === expenseId
+            ? { ...expenseRow, [field]: value }
+            : expenseRow,
         ),
       }));
 
-    const handleDeleteExpenseRow = (id) => {
+    const handleDeleteExpenseRow = (expenseId) => {
       setExpenseDialog((prev) => ({
         ...prev,
-        rows: prev.rows.filter((expenseRow) => expenseRow.id !== id),
+        rows: prev.rows.filter(
+          (expenseRow) => expenseRow.expenseId !== expenseId,
+        ),
       }));
-      setExpenseMenu({ anchorEl: null, rowId: null });
+      setExpenseMenu({ anchorEl: null, expenseId: null });
     };
 
     const handleSaveExpenseDialog = () => {
       const validExpenseRows = expenseDialog.rows.filter(
         (expenseRow) =>
-          expenseRow.name || expenseRow.amount || expenseRow.currency,
+          expenseRow.expenseName ||
+          expenseRow.expenseAmount ||
+          expenseRow.expenseCurrency,
       );
       updateRow(expenseDialog.rowId, "expenses", validExpenseRows);
       handleCloseExpenseDialog();
     };
 
-    const handleOpenExpenseMenu = (event, rowId) =>
-      setExpenseMenu({ anchorEl: event.currentTarget, rowId });
+    const handleOpenExpenseMenu = (event, expenseId) =>
+      setExpenseMenu({ anchorEl: event.currentTarget, expenseId });
 
     const handleCloseExpenseMenu = () =>
       setExpenseMenu({ anchorEl: null, rowId: null });
@@ -584,7 +590,7 @@ const AddMaterial = forwardRef(
     );
 
     return (
-      <Box sx={{ p: 2, overflow: "auto", maxHeight: "fit-content" }}>
+      <Box sx={{  overflow:  "auto",  maxHeight:  "fit-content" }}>
         <ReusableToast
           open={toastOpen}
           severity={toastSeverity}
@@ -598,8 +604,6 @@ const AddMaterial = forwardRef(
             alignItems: "center",
             position: "sticky",
             top: 0,
-            // backgroundColor: "#f5f5f5",
-            mb: 2,
           }}
         >
           <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#2f3136" }}>
@@ -776,14 +780,14 @@ const AddMaterial = forwardRef(
                 </TableHead>
                 <TableBody>
                   {expenseDialog.rows.map((expenseRow) => (
-                    <TableRow key={expenseRow.id}>
+                    <TableRow key={expenseRow.expenseId}>
                       <TableCell sx={cellSx}>
                         <Select
-                          value={expenseRow.name}
+                          value={expenseRow.expenseName}
                           onChange={(e) =>
                             handleUpdateExpenseRow(
-                              expenseRow.id,
-                              "name",
+                              expenseRow.expenseId,
+                              "expenseName",
                               e.target.value,
                             )
                           }
@@ -804,11 +808,11 @@ const AddMaterial = forwardRef(
                       </TableCell>
                       <TableCell sx={cellSx}>
                         <TextField
-                          value={expenseRow.amount}
+                          value={expenseRow.expenseAmount}
                           onChange={(e) =>
                             handleUpdateExpenseRow(
-                              expenseRow.id,
-                              "amount",
+                              expenseRow.expenseId,
+                              "expenseAmount",
                               e.target.value,
                             )
                           }
@@ -820,11 +824,11 @@ const AddMaterial = forwardRef(
                       </TableCell>
                       <TableCell sx={cellSx}>
                         <Select
-                          value={expenseRow.currency}
+                          value={expenseRow.expenseCurrency}
                           onChange={(e) =>
                             handleUpdateExpenseRow(
-                              expenseRow.id,
-                              "currency",
+                              expenseRow.expenseId,
+                              "expenseCurrency",
                               e.target.value,
                             )
                           }
@@ -845,11 +849,11 @@ const AddMaterial = forwardRef(
                       </TableCell>
                       <TableCell sx={cellSx}>
                         <Select
-                          value={expenseRow.per}
+                          value={expenseRow.expensePer}
                           onChange={(e) =>
                             handleUpdateExpenseRow(
-                              expenseRow.id,
-                              "per",
+                              expenseRow.expenseId,
+                              "expensePer",
                               e.target.value,
                             )
                           }
@@ -873,7 +877,7 @@ const AddMaterial = forwardRef(
                           <IconButton
                             size="small"
                             onClick={(e) =>
-                              handleOpenExpenseMenu(e, expenseRow.id)
+                              handleOpenExpenseMenu(e, expenseRow.expenseId)
                             }
                           >
                             <MoreVertIcon fontSize="small" />
@@ -891,7 +895,7 @@ const AddMaterial = forwardRef(
               onClose={handleCloseExpenseMenu}
             >
               <MenuItem
-                onClick={() => handleDeleteExpenseRow(expenseMenu.rowId)}
+                onClick={() => handleDeleteExpenseRow(expenseMenu.expenseId)}
               >
                 Delete
               </MenuItem>
