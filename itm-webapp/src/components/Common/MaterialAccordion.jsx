@@ -16,6 +16,7 @@ const MaterialAccordion = ({
   renderEditableField,
   renderReadOnlyField,
 }) => {
+  const excludedKeys = ["serial", "actions", "expenses"];
   return (
     <Accordion
       disableGutters
@@ -71,19 +72,19 @@ const MaterialAccordion = ({
           }}
         >
           {columns
-            .filter((c) => c.key !== "serial" && c.key !== "actions")
+            .filter((c) => excludedKeys.indexOf(c.key) === -1)
             .map((col) => (
               <Box key={`${row.id}-${col.key}`}>
                 <Typography
-                  sx={{
+                sx={{
                     fontSize: 12,
                     fontWeight: 600,
                     color: "#6b7280",
                     mb: 0.5,
-                  }}
-                >
+                  }}>
                   {col.label}
                 </Typography>
+                {renderCell(row, index, col.key)}
               </Box>
             ))}
         </Box>
