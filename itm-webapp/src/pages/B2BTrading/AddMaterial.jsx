@@ -501,10 +501,16 @@ const AddMaterial = forwardRef(
               justifyContent: "center",
             }}
           >
-            <IconButton size="small" onClick={() => handleConfirmRow(row.id)}>
+            <IconButton size="small" onClick={(e) => {
+              e.stopPropagation();
+              handleConfirmRow(row.id);
+            }}>
               <CheckIcon sx={{ color: "#2e7d32", fontSize: 20 }} />
             </IconButton>
-            <IconButton size="small" onClick={() => handleCancelRow(row.id)}>
+            <IconButton size="small" onClick={(e) => {
+              e.stopPropagation();
+              handleCancelRow(row.id);
+            }}>
               <CloseIcon sx={{ color: "#c0392b", fontSize: 20 }} />
             </IconButton>
           </Box>
@@ -519,7 +525,10 @@ const AddMaterial = forwardRef(
             {!readOnly && (
               <IconButton
                 size="small"
-                onClick={() => handleSplitItem(row.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSplitItem(row.id);
+                }}
                 title="Split item"
               >
                 <CallSplit fontSize="small" />
@@ -528,16 +537,31 @@ const AddMaterial = forwardRef(
             {!readOnly && (
               <IconButton
                 size="small"
-                onClick={() => handleDuplicateItem(row.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDuplicateItem(row.id);
+                }}
                 title="Duplicate item"
               >
                 <Copy fontSize="small" />
               </IconButton>
             )}
-            <IconButton size="small" onClick={() => handleEditRow(row.id)}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditRow(row.id);
+              }}
+            >
               <EditIcon sx={{ color: "#7a8aa0", fontSize: 18 }} />
             </IconButton>
-            <IconButton size="small" onClick={() => handleDeleteRow(row.id)}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteRow(row.id);
+              }}
+            >
               <DeleteOutlineIcon sx={{ color: "#c0392b", fontSize: 18 }} />
             </IconButton>
           </Box>
@@ -560,7 +584,7 @@ const AddMaterial = forwardRef(
     );
 
     return (
-      <Box sx={{ p: 2,overflow:"auto",maxHeight:"fit-content" }}>
+      <Box sx={{ p: 2, overflow: "auto", maxHeight: "fit-content" }}>
         <ReusableToast
           open={toastOpen}
           severity={toastSeverity}
@@ -603,7 +627,14 @@ const AddMaterial = forwardRef(
           </Box>
         </Box>
         {/* Tbale or Accordion Container */}
-        <Box sx={{maxHeight:"fit-content",maxHeight:"50dvh",overflowY:"auto",padding:2}}>
+        <Box
+          sx={{
+            maxHeight: "fit-content",
+            maxHeight: "50dvh",
+            overflowY: "auto",
+            padding: 2,
+          }}
+        >
           {viewMode === "table" ? (
             <TableContainer
               sx={{ border: "1px solid #d9dee7", borderRadius: "6px" }}
