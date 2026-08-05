@@ -23,6 +23,10 @@ const NUMERIC_TYPES = new Set(['INTEGER', 'DECIMAL', 'BIGINT', 'FLOAT', 'DOUBLE'
 const DECIMAL_TYPES = new Set(['DECIMAL', 'FLOAT', 'DOUBLE']);
 const TEXTAREA_THRESHOLD = 255;
 const SKIP_METADATA_FIELDS = new Set(['variantFieldId', 'columnId', 'columnName', 'variantId', 'variantName', 'definitionId', 'fields', '_id', 'id']);
+// Lookup runtime knobs — server-side search + pagination
+const LOOKUP_PAGE_SIZE = 20;
+const LOOKUP_SEARCH_DEBOUNCE_MS = 300;
+const LOOKUP_SCROLL_THRESHOLD_PX = 8;
 
 // ─── Date/Time ──────────────────────────────────────────────────────────────────
 const DATE_TYPES = new Set(['DATE']);
@@ -759,19 +763,43 @@ const getLookupDependentFields = (meta) => {
   return lookupMetadata?.dependentFields || [];
 };
 
+// Server-side search knobs — falls back to top-level meta if not nested under the type-specific metadata block.
+const getLookupSearchConfig = (meta) => {
+  const lookupMetadata = getLookupMetadata(meta);
+  const isSearchable = !!(lookupMetadata?.isSearchable ?? meta?.isSearchable);
+  const searchMappedName = lookupMetadata?.searchMappedName || meta?.searchMappedName || '';
+  return { isSearchable, searchMappedName };
+};
+
+// Server-side pagination knobs — topMappedName carries the page number, skipMappedName carries the page size.
+const getLookupPaginationConfig = (meta) => {
+  const lookupMetadata = getLookupMetadata(meta);
+  const isPagination = !!(lookupMetadata?.isPagination ?? meta?.isPagination);
+  const topMappedName = lookupMetadata?.topMappedName || meta?.topMappedName || '';
+  const skipMappedName = lookupMetadata?.skipMappedName || meta?.skipMappedName || '';
+  return { isPagination, topMappedName, skipMappedName };
+};
+
 const getDisplayFieldName = (data) => {
   const metadata = data?.metadata || [];
   const displayMeta = metadata.find((item) => item?.isDisplayName);
   return displayMeta?.mappedName || 'value';
 };
 
+// Monotonic per-option identity — makes the Autocomplete row identity stable even when
+// two LAPI rows are structurally identical (e.g. 20x { provider: 'DocuSign' }), which
+// is what MUI compares via isOptionEqualToValue to decide which checkbox is on.
+let _lookupOptionUid = 0;
+const nextLookupUid = () => ++_lookupOptionUid;
+
 const normalizeLookupOptions = (lookupData) => {
   const rawValues = lookupData?.data?.values || [];
   const displayFieldName = getDisplayFieldName(lookupData?.data);
 
   return rawValues.map((item) => {
+    const uid = nextLookupUid();
     if (typeof item === 'string') {
-      return { key: item, value: item };
+      return { key: item, value: item, _uid: uid };
     }
 
     const displayValue = item?.[displayFieldName];
@@ -783,6 +811,7 @@ const normalizeLookupOptions = (lookupData) => {
       ...item,
       key: item?.key ?? normalizedValue,
       value: normalizedValue,
+      _uid: uid,
     };
   });
 };
@@ -800,16 +829,97 @@ const fetchLookupData = (lookupId, constraintParams, headers, baseUrl = '') => {
 };
 
 // ─── Lookup Hook ────────────────────────────────────────────────────────────────
+// Fetch gates on mount: if the meta declares constraints OR isSearchable OR isPagination,
+// skip the initial /lapi/data call. Otherwise fetch once (legacy behavior).
+//   - constraints  → data is fetched when the parent selection resolves (onDropdownChange)
+//   - isSearchable → data is fetched when the user types (debounced onSearchInput)
+//   - isPagination → data is fetched on dropdown open (page 1) and on scroll-to-bottom (append)
 const useLookups = (fields, headers, baseUrl, readOnly = false) => {
   const [lookupOptions, setLookupOptions] = useState({});
+  const [lookupLoading, setLookupLoading] = useState({});
+  const [lookupFlags, setLookupFlags] = useState({});
   const lookupMetaRef = useRef({});
   const initialised = useRef(new Set());
+  // Per-field mutable runtime state (refs so mutation doesn't trigger renders)
+  const searchTextRef = useRef({});
+  const pageRef = useRef({});
+  const hasMoreRef = useRef({});
+  const constraintsRef = useRef({});
+  const requestIdRef = useRef({});
+  const loadingRef = useRef({});
+  const debounceTimersRef = useRef({});
 
   const fieldsByColumn = useMemo(() => {
     const m = {};
     fields.forEach((f) => { m[f.columnName] = f; });
     return m;
   }, [fields]);
+  const fieldsByName = useMemo(() => {
+    const m = {};
+    fields.forEach((f) => { m[f.fieldName] = f; });
+    return m;
+  }, [fields]);
+
+  const rememberFlags = useCallback((fieldName, meta) => {
+    const { isSearchable } = getLookupSearchConfig(meta);
+    const { isPagination } = getLookupPaginationConfig(meta);
+    setLookupFlags((prev) => {
+      const cur = prev[fieldName];
+      if (cur && cur.serverSideSearch === isSearchable && cur.serverSidePagination === isPagination) return prev;
+      return { ...prev, [fieldName]: { serverSideSearch: isSearchable, serverSidePagination: isPagination } };
+    });
+  }, []);
+
+  // Core fetch primitive — assembles constraint + search + pagination params from the per-field refs.
+  const runFetch = useCallback(async (fieldName, opts = {}) => {
+    const { append = false } = opts;
+    const meta = lookupMetaRef.current[fieldName];
+    const field = fieldsByName[fieldName];
+    if (!meta || !field?.propertyDto?.lookupId) return;
+
+    const search = getLookupSearchConfig(meta);
+    const pagination = getLookupPaginationConfig(meta);
+
+    const params = { ...(constraintsRef.current[fieldName] || {}) };
+    if (search.isSearchable && search.searchMappedName) {
+      const t = searchTextRef.current[fieldName] || '';
+      if (t) params[search.searchMappedName] = t;
+    }
+    if (pagination.isPagination) {
+      const page = pageRef.current[fieldName] || 1;
+      if (pagination.topMappedName) params[pagination.topMappedName] = page;
+      if (pagination.skipMappedName) params[pagination.skipMappedName] = LOOKUP_PAGE_SIZE;
+    }
+
+    const rid = (requestIdRef.current[fieldName] = (requestIdRef.current[fieldName] || 0) + 1);
+    loadingRef.current[fieldName] = true;
+    setLookupLoading((prev) => (prev[fieldName] ? prev : { ...prev, [fieldName]: true }));
+
+    try {
+      const dataRes = await fetchLookupData(
+        field.propertyDto.lookupId,
+        Object.keys(params).length ? params : null,
+        headers,
+        baseUrl,
+      );
+      if (rid !== requestIdRef.current[fieldName]) return; // stale — a newer request has taken over
+      const newOptions = normalizeLookupOptions(dataRes);
+      hasMoreRef.current[fieldName] = pagination.isPagination
+        ? newOptions.length >= LOOKUP_PAGE_SIZE
+        : false;
+      setLookupOptions((prev) => ({
+        ...prev,
+        [fieldName]: append ? [...(prev[fieldName] || []), ...newOptions] : newOptions,
+      }));
+    } catch (err) {
+      console.error(`[Lookup] fetch error for ${fieldName}:`, err);
+    } finally {
+      if (rid === requestIdRef.current[fieldName]) {
+        loadingRef.current[fieldName] = false;
+        setLookupLoading((prev) => ({ ...prev, [fieldName]: false }));
+      }
+    }
+  }, [fieldsByName, headers, baseUrl]);
 
   useEffect(() => {
     if (readOnly || fields.length === 0) return;
@@ -823,29 +933,45 @@ const useLookups = (fields, headers, baseUrl, readOnly = false) => {
         const meta = metaRes?.data;
         if (!meta) return;
         lookupMetaRef.current = { ...lookupMetaRef.current, [fieldName]: meta };
-        const lookupMetadata = getLookupMetadata(meta);
-        const constraints = lookupMetadata?.constraints || [];
+        rememberFlags(fieldName, meta);
+        const constraints = getLookupConstraints(meta);
+        const { isSearchable } = getLookupSearchConfig(meta);
+        const { isPagination } = getLookupPaginationConfig(meta);
 
-        if (!constraints || constraints.length === 0) {
-          const dataRes = await fetchLookupData(propertyDto.lookupId, null, headers, baseUrl);
-          setLookupOptions((prev) => ({ ...prev, [fieldName]: normalizeLookupOptions(dataRes) }));
-          return;
-        }
+        // Skip the initial data fetch when any gate is enabled — data will be fetched on user action.
+        if (constraints.length > 0 || isSearchable || isPagination) return;
 
-        return;
+        pageRef.current[fieldName] = 1;
+        await runFetch(fieldName);
       } catch (err) {
         console.error(`[Lookup] meta error for ${fieldName}:`, err);
       }
     });
-  }, [fields, headers, baseUrl]);
+  }, [fields, headers, baseUrl, readOnly, runFetch, rememberFlags]);
+
+  useEffect(() => () => {
+    Object.values(debounceTimersRef.current).forEach((t) => t && clearTimeout(t));
+  }, []);
 
   const onDropdownChange = useCallback(async (changedFieldName, selectedValue) => {
     const meta = lookupMetaRef.current[changedFieldName];
     if (!meta) return;
     const dependentFieldNames = getLookupDependentFields(meta);
     if (dependentFieldNames.length === 0) return;
-    const constraintValue = selectedValue?.key ?? selectedValue?.value ?? selectedValue;
+
+    // Reduce parent selection to a scalar constraint (supports multi-select arrays + enriched wrappers).
+    const toScalar = (item) => (item && typeof item === 'object' ? (item.key ?? item.value) : item);
+    const joinArr = (arr) => arr.map(toScalar).filter((v) => v !== undefined && v !== null && v !== '').join(',');
+    let constraintValue;
+    if (Array.isArray(selectedValue)) {
+      constraintValue = joinArr(selectedValue);
+    } else if (selectedValue && typeof selectedValue === 'object' && (Array.isArray(selectedValue.value) || Array.isArray(selectedValue.key))) {
+      constraintValue = joinArr(Array.isArray(selectedValue.value) ? selectedValue.value : selectedValue.key);
+    } else {
+      constraintValue = selectedValue?.key ?? selectedValue?.value ?? selectedValue;
+    }
     if (constraintValue === undefined || constraintValue === null || constraintValue === '') return;
+
     for (const depColumnName of dependentFieldNames) {
       const depField = fieldsByColumn[depColumnName];
       if (!depField?.propertyDto?.isLookup || !depField.propertyDto?.lookupId) continue;
@@ -854,42 +980,134 @@ const useLookups = (fields, headers, baseUrl, readOnly = false) => {
         if (!depMeta) {
           const metaRes = await fetchLookupMeta(depField.propertyDto.lookupId, headers, baseUrl);
           depMeta = metaRes?.data;
-          if (depMeta) lookupMetaRef.current = { ...lookupMetaRef.current, [depField.fieldName]: depMeta };
-        }
-        const constraints = getLookupConstraints(depMeta);
-        let dataRes;
-
-        if (!constraints || constraints.length === 0) {
-          dataRes = await fetchLookupData(depField.propertyDto.lookupId, null, headers, baseUrl);
-        } else {
-          const constraintParams = {};
-          constraints.forEach((c) => {
-            if (c?.mappedName) constraintParams[c.mappedName] = constraintValue;
-          });
-
-          if (Object.keys(constraintParams).length === 0) {
-            return;
+          if (depMeta) {
+            lookupMetaRef.current = { ...lookupMetaRef.current, [depField.fieldName]: depMeta };
+            rememberFlags(depField.fieldName, depMeta);
           }
-
-          dataRes = await fetchLookupData(depField.propertyDto.lookupId, constraintParams, headers, baseUrl);
         }
+        if (!depMeta) continue;
+        const constraints = getLookupConstraints(depMeta);
+        const { isSearchable } = getLookupSearchConfig(depMeta);
+        const { isPagination } = getLookupPaginationConfig(depMeta);
 
-        setLookupOptions((prev) => ({ ...prev, [depField.fieldName]: normalizeLookupOptions(dataRes) }));
+        // Build + cache constraint params — reused by later search / scroll fetches on this field.
+        let constraintParams = null;
+        if (constraints.length > 0) {
+          constraintParams = {};
+          constraints.forEach((c) => { if (c?.mappedName) constraintParams[c.mappedName] = constraintValue; });
+          if (Object.keys(constraintParams).length === 0) continue;
+        }
+        constraintsRef.current[depField.fieldName] = constraintParams || {};
+
+        // Parent changed → reset per-field state so we don't carry stale search/page context.
+        pageRef.current[depField.fieldName] = 1;
+        searchTextRef.current[depField.fieldName] = '';
+        hasMoreRef.current[depField.fieldName] = true;
+        requestIdRef.current[depField.fieldName] = (requestIdRef.current[depField.fieldName] || 0) + 1;
+        setLookupOptions((prev) => ({ ...prev, [depField.fieldName]: [] }));
+
+        // Same skip rule as mount: gates present → wait for the user (type / open).
+        if (isSearchable || isPagination) continue;
+        await runFetch(depField.fieldName);
       } catch (err) {
         console.error(`[Lookup] dependent error for ${depField.fieldName}:`, err);
       }
     }
-  }, [fieldsByColumn, headers, baseUrl]);
+  }, [fieldsByColumn, headers, baseUrl, runFetch, rememberFlags]);
 
-  return { lookupOptions, setLookupOptions, onDropdownChange, lookupMetaRef };
+  // Dropdown opened — for pagination-only lookups, fetch page 1 the first time.
+  const onLookupOpen = useCallback((fieldName) => {
+    const meta = lookupMetaRef.current[fieldName];
+    if (!meta) return;
+    const { isSearchable } = getLookupSearchConfig(meta);
+    const { isPagination } = getLookupPaginationConfig(meta);
+    if (isPagination && !isSearchable) {
+      const cur = lookupOptions[fieldName];
+      if (!cur || cur.length === 0) {
+        pageRef.current[fieldName] = 1;
+        hasMoreRef.current[fieldName] = true;
+        runFetch(fieldName);
+      }
+    }
+  }, [lookupOptions, runFetch]);
+
+  // User typed — debounced 300ms. Empty string clears options without a network hit.
+  const onLookupSearchInput = useCallback((fieldName, text) => {
+    const meta = lookupMetaRef.current[fieldName];
+    if (!meta) return;
+    const { isSearchable } = getLookupSearchConfig(meta);
+    if (!isSearchable) return;
+
+    if (debounceTimersRef.current[fieldName]) {
+      clearTimeout(debounceTimersRef.current[fieldName]);
+    }
+    debounceTimersRef.current[fieldName] = setTimeout(() => {
+      const trimmed = String(text || '').trim();
+      searchTextRef.current[fieldName] = trimmed;
+      pageRef.current[fieldName] = 1;
+      hasMoreRef.current[fieldName] = true;
+      if (!trimmed) {
+        requestIdRef.current[fieldName] = (requestIdRef.current[fieldName] || 0) + 1;
+        loadingRef.current[fieldName] = false;
+        setLookupLoading((prev) => ({ ...prev, [fieldName]: false }));
+        setLookupOptions((prev) => ({ ...prev, [fieldName]: [] }));
+        return;
+      }
+      runFetch(fieldName);
+    }, LOOKUP_SEARCH_DEBOUNCE_MS);
+  }, [runFetch]);
+
+  // Scrolled to the bottom — append the next page.
+  const onLookupLoadMore = useCallback((fieldName) => {
+    const meta = lookupMetaRef.current[fieldName];
+    if (!meta) return;
+    const { isPagination } = getLookupPaginationConfig(meta);
+    if (!isPagination) return;
+    if (loadingRef.current[fieldName]) return;
+    if (!hasMoreRef.current[fieldName]) return;
+    pageRef.current[fieldName] = (pageRef.current[fieldName] || 1) + 1;
+    runFetch(fieldName, { append: true });
+  }, [runFetch]);
+
+  return {
+    lookupOptions,
+    setLookupOptions,
+    onDropdownChange,
+    lookupMetaRef,
+    lookupLoading,
+    lookupFlags,
+    onLookupOpen,
+    onLookupSearchInput,
+    onLookupLoadMore,
+  };
 };
 
 // ─── Form Field ───────────────────────────────────────────────────────────
 const EMPTY_ARR = [];
-const FormField = memo(({ field, value, onChange, options, error, readOnly, dateFormat }) => {
+// Placeholder text per field type — shown inside the input once the label has floated up.
+const getFieldPlaceholder = (field, pickerKind, dateFormat, isSearchable) => {
+  const label = field?.label || field?.fieldName || '';
+  if (pickerKind === 'time') return dateFormat?.time || DEFAULT_TIME_FORMAT;
+  if (pickerKind === 'datetime') return dateFormat?.dateTime || DEFAULT_DATETIME_FORMAT;
+  if (pickerKind === 'date') return dateFormat?.date || DEFAULT_DATE_FORMAT;
+  if (!label) return '';
+  if (field?.propertyDto?.isLookup) return isSearchable ? `Search ${label}` : `Select ${label}`;
+  return `Enter ${label}`;
+};
+const FormField = memo(({
+  field, value, onChange, options, error, readOnly, dateFormat,
+  loading = false, serverSideSearch = false, serverSidePagination = false,
+  onLookupOpen, onLookupSearchInput, onLookupLoadMore,
+}) => {
   const { controlName, dataType, label, fieldName, maxLength, propertyDto } = field;
   const { isMandatory, isEditable, isVisible, isLookup, isMultiSelect } = propertyDto || {};
   const sanitizedFieldName = sanitizeFieldName(fieldName);
+  // Controlled input value for server-side search — prevents MUI from wiping the query on selection / blur.
+  const [searchInput, setSearchInput] = useState('');
+  useEffect(() => {
+    const isEmpty = value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0);
+    if (isEmpty && searchInput) setSearchInput('');
+  }, [value]);
   if (!isVisible) return null;
 
   if (dataType === 'BOOLEAN') {
@@ -906,6 +1124,12 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly, date
   if (isLookup) {
     const toOption = (v) => {
       if (v && typeof v === 'object' && !Array.isArray(v)) {
+        // If the value already carries a _uid, it IS a normalized option — resolve strictly by _uid so
+        // structurally-identical LAPI rows (same key & value) don't collapse to the first match.
+        if (v._uid !== undefined) {
+          const byUid = options.find((o) => o._uid === v._uid);
+          return byUid || v;
+        }
         const found = options.find((o) => o.key === v.key || o.value === v.value);
         if (found) return found;
         const key = v.key ?? v.value ?? '';
@@ -922,21 +1146,71 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly, date
       .map(toOption)
       .filter(Boolean);
     const selectedObj = Array.isArray(value) ? null : toOption(value);
+    // Preserve previously selected multi-select values that aren't in the freshly-fetched options
+    // (e.g. after a new search / next page) so the user can still see & un-check them.
+    const displayOptions = (() => {
+      if (!isMultiSelect || !Array.isArray(selectedForMulti) || selectedForMulti.length === 0) return options;
+      const seen = new Set();
+      options.forEach((o) => { if (o && o._uid !== undefined) seen.add(o._uid); });
+      const missing = [];
+      selectedForMulti.forEach((s) => {
+        if (s && typeof s === 'object' && s._uid !== undefined && !seen.has(s._uid)) {
+          seen.add(s._uid);
+          missing.push(s);
+        }
+      });
+      return missing.length > 0 ? [...missing, ...options] : options;
+    })();
     const multiSelectSx = isMultiSelect ? {
       width: '100%',
       '& .MuiOutlinedInput-root': { flexWrap: 'nowrap', overflow: 'hidden', alignItems: 'center' },
       '& .MuiAutocomplete-tag': { maxWidth: 110 },
     } : undefined;
+    const listboxScroll = serverSidePagination ? (event) => {
+      const node = event.currentTarget;
+      if (!node) return;
+      if (node.scrollHeight - node.scrollTop - node.clientHeight <= LOOKUP_SCROLL_THRESHOLD_PX) {
+        onLookupLoadMore && onLookupLoadMore(fieldName);
+      }
+    } : undefined;
     return (
       <Autocomplete
-        options={options}
+        options={displayOptions}
         getOptionLabel={(opt) => (typeof opt === 'string' ? opt : opt?.value ?? '')}
         isOptionEqualToValue={(opt, val) => {
           if (!opt || !val) return false;
-          return typeof val === 'string' ? (opt.value === val || opt.key === val) : opt.key === val.key;
+          if (opt === val) return true;
+          if (opt._uid !== undefined && val._uid !== undefined) return opt._uid === val._uid;
+          if (typeof val === 'string') return opt.value === val || opt.key === val;
+          return opt.key === val.key;
         }}
         value={isMultiSelect ? selectedForMulti : selectedObj}
-        onChange={(_, newVal) => onChange(fieldName, newVal)}
+        onChange={(_, newVal) => {
+          onChange(fieldName, newVal);
+          if (serverSideSearch && !isMultiSelect) setSearchInput('');
+        }}
+        onOpen={onLookupOpen ? () => onLookupOpen(fieldName) : undefined}
+        inputValue={searchInput}
+        onInputChange={(_, newInput, reason) => {
+          if (reason === 'input') {
+            setSearchInput(newInput);
+            if (serverSideSearch) onLookupSearchInput && onLookupSearchInput(fieldName, newInput);
+          } else if (reason === 'clear') {
+            setSearchInput('');
+            if (serverSideSearch) onLookupSearchInput && onLookupSearchInput(fieldName, '');
+          } else if (reason === 'reset') {
+            // Single-select: mirror the resolved selection label.
+            // Multi-select + server search: keep the typed query so the user can keep searching.
+            // Multi-select + client search: clear (default MUI behaviour).
+            if (!isMultiSelect) setSearchInput(newInput || '');
+            else if (!serverSideSearch) setSearchInput(newInput || '');
+          }
+        }}
+        clearOnBlur={!(serverSideSearch && isMultiSelect)}
+        filterOptions={serverSideSearch ? (x) => x : undefined}
+        loading={loading}
+        noOptionsText={serverSideSearch ? 'Type to search...' : 'No options'}
+        ListboxProps={listboxScroll ? { onScroll: listboxScroll } : undefined}
         disabled={!isEditable || readOnly}
         multiple={!!isMultiSelect}
         disableCloseOnSelect={!!isMultiSelect}
@@ -979,6 +1253,7 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly, date
             <TextField
               {...params}
               label={label}
+              placeholder={getFieldPlaceholder(field, null, dateFormat, serverSideSearch)}
               required={!!isMandatory}
               error={!!error}
               helperText={error}
@@ -1028,6 +1303,7 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly, date
         slotProps={{
           textField: {
             size: 'medium', fullWidth: true, name: fieldName,
+            placeholder: getFieldPlaceholder(field, pickerKind, dateFormat, false),
             InputLabelProps: { sx: { textAlign: 'left' }, id: `label-${sanitizedFieldName}`, className: `dynamic-form-label label-${sanitizedFieldName}`, 'data-value': label },
             inputProps: { id: `field-${sanitizedFieldName}`, className: `dynamic-form-field field-${sanitizedFieldName}`, 'data-value': dataAttrValue },
           },
@@ -1043,6 +1319,7 @@ const FormField = memo(({ field, value, onChange, options, error, readOnly, date
   return (
     <TextField
       label={label} value={currentValue}
+      placeholder={getFieldPlaceholder(field, null, dateFormat, false)}
       onChange={(e) => {
         if (isNumeric) {
           const next = sanitizeNumericInput(e.target.value, dataType, maxLen);
@@ -1104,7 +1381,10 @@ const B2BTradingItemsFilter = forwardRef(({ variantData: externalVariantData, in
     return m;
   }, [fields]);
 
-  const { lookupOptions, setLookupOptions, onDropdownChange, lookupMetaRef } = useLookups(fields, headers, baseUrl, readOnly);
+  const {
+    lookupOptions, setLookupOptions, onDropdownChange, lookupMetaRef,
+    lookupLoading, lookupFlags, onLookupOpen, onLookupSearchInput, onLookupLoadMore,
+  } = useLookups(fields, headers, baseUrl, readOnly);
   const onDropdownChangeRef = useRef(onDropdownChange);
   useEffect(() => { onDropdownChangeRef.current = onDropdownChange; }, [onDropdownChange]);
 
@@ -1416,6 +1696,12 @@ const B2BTradingItemsFilter = forwardRef(({ variantData: externalVariantData, in
                 error={validationErrors[field.fieldName]}
                 readOnly={readOnly}
                 dateFormat={dateFormat}
+                loading={!!lookupLoading[field.fieldName]}
+                serverSideSearch={!!lookupFlags[field.fieldName]?.serverSideSearch}
+                serverSidePagination={!!lookupFlags[field.fieldName]?.serverSidePagination}
+                onLookupOpen={onLookupOpen}
+                onLookupSearchInput={onLookupSearchInput}
+                onLookupLoadMore={onLookupLoadMore}
               />
             </Grid>
           ))}
