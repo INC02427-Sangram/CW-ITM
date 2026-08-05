@@ -566,7 +566,7 @@ const AddMaterial = forwardRef(
     );
 
     return (
-      <Box sx={{ p: 2,overflow:"auto",maxHeight:"fit-content" }}>
+      <Box sx={{ overflow: "auto", maxHeight: "fit-content" }}>
         <ReusableToast
           open={toastOpen}
           severity={toastSeverity}
@@ -580,8 +580,6 @@ const AddMaterial = forwardRef(
             alignItems: "center",
             position: "sticky",
             top: 0,
-            // backgroundColor: "#f5f5f5",
-            mb: 2,
           }}
         >
           <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#2f3136" }}>
@@ -609,7 +607,14 @@ const AddMaterial = forwardRef(
           </Box>
         </Box>
         {/* Tbale or Accordion Container */}
-        <Box sx={{maxHeight:"fit-content",maxHeight:"50dvh",overflowY:"auto",padding:2}}>
+        <Box
+          sx={{
+            maxHeight: "fit-content",
+            maxHeight: "50dvh",
+            overflowY: "auto",
+            padding: 2,
+          }}
+        >
           {viewMode === "table" ? (
             <TableContainer
               sx={{ border: "1px solid #d9dee7", borderRadius: "6px" }}
