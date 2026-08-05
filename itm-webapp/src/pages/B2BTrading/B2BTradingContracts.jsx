@@ -12,18 +12,12 @@ import {
   B2BContractItemsStatCards,
   dummyTableData,
 } from "../../dummydatas/dummydata";
-import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
+import { b2bTradingRoutes, b2bTradingStatusStyles } from "../../config/b2btrading.routes.config";
 import FilterAccordian from "../../components/Common/FilterAccordian";
 import B2BTradingFilter, {
   ListView,
 } from "../../cw-generated-forms/B2BTradingFilter";
 import requestOptions from "../../utils/fnServices/requestOptions";
-const STATUS_STYLES = {
-  Active: { color: "#1e7d32", backgroundColor: "#e8f5e9" },
-  "Pending Approval": { color: "#2454b8", backgroundColor: "#e6edfb" },
-  Expired: { color: "#c0392b", backgroundColor: "#fdecea" },
-  "Expiring Soon": { color: "#b56a1f", backgroundColor: "#fdf1e3" },
-};
 
 const contractColumns = [
   { fieldName: "ITM_CTC_ID", label: "Contract", flex: 1, minWidth: 140 },
@@ -57,13 +51,6 @@ const contractColumns = [
     label: "Status",
     width: 150,
     sortable: false,
-    renderCell: (params) => (
-      <Chip
-        label={params.value}
-        size="small"
-        sx={{ fontWeight: 600, ...(STATUS_STYLES[params.value] || {}) }}
-      />
-    ),
   },
   {
     fieldName: "actions",
@@ -125,7 +112,7 @@ export default function B2BTradingContracts() {
         <Chip
           label={value}
           size="small"
-          sx={{ fontWeight: 600, ...(STATUS_STYLES[value] || {}) }}
+          sx={{ fontWeight: 600,height:30, width: 150, ...(b2bTradingStatusStyles[value] || {}) }}
         />
       );
     }

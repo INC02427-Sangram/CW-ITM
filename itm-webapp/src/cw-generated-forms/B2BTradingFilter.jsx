@@ -892,7 +892,7 @@ export const ListView = ({ data = [], columns = [], onEdit, onDelete, onRowClick
   const isIndeterminate = selectedRows.size > 0 && selectedRows.size < normalizedData.length;
 
   return (
-    <TableContainer sx={{ mt: 3 }} className="dynamic-form-table-container">
+    <TableContainer sx={{ mt: 0, borderRadius: 2 }} className="dynamic-form-table-container">
       <table id="dynamic-form-list-view" className="dynamic-form-table" style={tableStyle}>
         <thead className="dynamic-form-table-header">
           <tr>
