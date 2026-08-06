@@ -73,7 +73,7 @@ export default function BackToBackTrading() {
             },
           ].filter(Boolean)}
         >
-          New B2B Contract
+          <ReusableTypography>New B2B Contract</ReusableTypography>
         </ReusableButtons>
       </Box>
       <Tabs
@@ -86,8 +86,16 @@ export default function BackToBackTrading() {
           },
         }}
       >
-        <Tab label="Trading Contracts" value="contracts" />
-        <Tab label="Trading Contracts Items" value="contractsItems" />
+        <Tab
+          label={<ReusableTypography>Trading Contracts</ReusableTypography>}
+          value="contracts"
+        />
+        <Tab
+          label={
+            <ReusableTypography>Trading Contracts Items</ReusableTypography>
+          }
+          value="contractsItems"
+        />
       </Tabs>
       <Box display={tabs === "contracts" ? "block" : "none"}>
         <B2BTradingContracts />

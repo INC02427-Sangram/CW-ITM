@@ -1,17 +1,26 @@
 import { Box } from "@mui/material";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { PurchaseOrderStatCards } from "../../dummydatas/dummydata";
 import ReusableTile from "../../components/Common/ReusableTile.jsx";
-// import FilterAccordian from "../../components/Common/FilterAccordian.jsx";
 import requestOptions from "../../utils/fnServices/requestOptions.js";
 // import { ListView } from "../../cw-generated-forms/PurchaseOrderFilter.jsx";
 import { useNavigate } from "react-router-dom";
+import FilterAccordian from "../../components/Common/FilterAccordian.jsx";
+import PurchaseOrderFilter from "../../cw-generated-forms/PurchaseOrderFilter.jsx";
 
 export default function PurchaseOrders() {
   const navigate = useNavigate();
+  const filterRef = useRef();
   const [selectedPurchaseOrders, setSelectedPurchaseOrders] = useState([]);
   const [selectedPurchaseOrderData, setSelectedPurchaseOrderData] =
     useState(null);
+  const handleClear = () => {
+    filterRef.current?.reset();
+  };
+  const handleSearch = () => {
+    const success = filterRef.current?.submit();
+    console.log(filterRef.current.getValues());
+  };
   return (
     <Box
       display="flex"
@@ -35,11 +44,11 @@ export default function PurchaseOrders() {
           </Box>
         ))}
       </Box>
-      {/* <Box display="flex" gap={2} flexWrap={"wrap"}>
+      <Box display="flex" gap={2} flexWrap={"wrap"}>
         <FilterAccordian
           title="Filter Purchase Orders"
-          //   onSearch={handleSearch}
-          //   onClear={handleClear}
+          onSearch={handleSearch}
+          onClear={handleClear}
           filterFieldsComponent={
             <PurchaseOrderFilter
               ref={filterRef}
@@ -51,7 +60,7 @@ export default function PurchaseOrders() {
           }
         />
       </Box>
-      <Box sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}>
+      {/*<Box sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}>
         <ListView
           data={purchaseOrderRows}
           columns={purchaseOrderColumns}
