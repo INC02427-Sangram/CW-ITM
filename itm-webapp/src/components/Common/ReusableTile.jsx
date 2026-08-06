@@ -1,16 +1,39 @@
 import React from "react";
 import styled from "styled-components";
-
+import { Box, Typography } from "@mui/material";
 const Card = ({ title, subtitle, description, onClick }) => {
   return (
     <StyledWrapper>
-      <div className="card" onClick={onClick}>
-        <div className="card-content">
-          <p className="card-title">{title}</p>
-          <p className="card-para">{subtitle}</p>
-          <p className="card-para">{description}</p>
-        </div>
-      </div>
+      <Box className="card" onClick={onClick}>
+        <Box
+          sx={{
+            padding: "0.5rem 1rem 0.5rem 1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            position: "relative",
+            height: "100%",
+          }}
+        >
+          <Typography sx={{ color: "#636e72", fontWeight: 600, fontSize: 14 }}>
+            {title}
+          </Typography>
+          <Typography sx={{ color: "#1F2A44", fontWeight: 800, fontSize: 24 }}>
+            {subtitle}
+          </Typography>
+          <Typography
+            sx={{
+              color: "#636e72",
+              fontWeight: 400,
+              fontSize: 12,
+              marginTop: "auto",
+            }}
+          >
+            {description}
+          </Typography>
+
+        </Box>
+      </Box>
     </StyledWrapper>
   );
 };
@@ -67,8 +90,8 @@ const StyledWrapper = styled.div`
   }
 
   .card:hover {
-    transform: rotateY(10deg) rotateX(10deg) scale(1.05);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: rotateY(10deg) rotateX(10deg) scale(1.01);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   }
 
   .card:before {

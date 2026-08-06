@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Accordion,
@@ -17,8 +17,19 @@ const MaterialAccordion = ({
   renderReadOnlyField,
 }) => {
   const excludedKeys = ["serial", "actions", "expenses"];
+  const [expanded, setExpanded] = useState(row.editing || false);
+
+  console.log("MaterialAccordion row:", row);
+  useEffect(() => {
+    setExpanded(row.editing || false);
+    return () => {
+      console.log("Expanded", expanded);
+    };
+  }, [row.editing]);
   return (
     <Accordion
+      expanded={expanded}
+      onChange={() => setExpanded((prev) => !prev)}
       disableGutters
       sx={{
         border: "1px solid #e0e0e0",
@@ -76,12 +87,13 @@ const MaterialAccordion = ({
             .map((col) => (
               <Box key={`${row.id}-${col.key}`}>
                 <Typography
-                sx={{
+                  sx={{
                     fontSize: 12,
                     fontWeight: 600,
                     color: "#6b7280",
                     mb: 0.5,
-                  }}>
+                  }}
+                >
                   {col.label}
                 </Typography>
                 {renderCell(row, index, col.key)}
