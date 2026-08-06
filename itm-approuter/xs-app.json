@@ -23,7 +23,7 @@
     {
       "source":"/(.*)$",
       "target":"/$1",
-      "destination":"cw_itm_contract_service",
+      "destination":"cw-itm-contract-service",
       "authenticationType":"xsuaa", 
       "csrfProtection": false
     },

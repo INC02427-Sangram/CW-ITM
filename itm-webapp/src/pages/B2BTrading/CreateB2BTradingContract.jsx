@@ -98,6 +98,7 @@ export default function CreateB2BTradingContractPage() {
   const [activeStep, setActiveStep] = useState(0);
   const formRef = useRef(null);
   const dispatch = useDispatch();
+  const [actionType, setActionType] = useState(location.state?.actionType || "edit"); 
 
   const editContractData = location.state?.editContractData;
   const isEditMode = Boolean(editContractData);
@@ -254,6 +255,11 @@ export default function CreateB2BTradingContractPage() {
       ...formData,
       items: contractItems,
     };
+    // if in clone mode or create mode, reset the contract id and status
+    if (actionType === "clone" || actionType === "create") {
+      completeContractData.ITM_CTC_ID = null;
+      completeContractData.status = "Draft";
+    }
     // TODO: Add API call to submit the contract data
     // navigate to success page or back to list
   };

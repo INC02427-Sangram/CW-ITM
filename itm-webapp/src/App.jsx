@@ -21,6 +21,14 @@ function App() {
     });
   }, [i18n, language]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetch("/api/test1");
+      console.log(data);
+    };
+    fetchData();
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="App">

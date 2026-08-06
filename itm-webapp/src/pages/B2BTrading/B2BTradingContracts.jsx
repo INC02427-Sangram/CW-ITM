@@ -1,23 +1,28 @@
 import React, { useRef, useState } from "react";
-import { IconButton, Chip, Tabs, Tab, Tooltip } from "@mui/material";
-import { Box } from "@mui/material";
+import { IconButton, Chip, Tabs, Tab, Tooltip, MenuList } from "@mui/material";
+import { Box, Menu, MenuItem } from "@mui/material";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ReusableTypography from "../../components/Common/ReusableTypography";
 import ReusableButtons from "../../components/Common/ReusableButtons";
 import ReusableTile from "../../components/Common/ReusableTile";
 import ReusableDataGrid from "../../components/Common/ReusableDataGrid";
-import { Add, Visibility, Pencil } from "@cw/rds/icons";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { Add, Visibility, Pencil, Copy } from "@cw/rds/icons";
 import {
   B2BContractStatCards,
   B2BContractItemsStatCards,
   dummyTableData,
 } from "../../dummydatas/dummydata";
-import { b2bTradingRoutes, b2bTradingStatusStyles } from "../../config/b2btrading.routes.config";
+import {
+  b2bTradingRoutes,
+  b2bTradingStatusStyles,
+} from "../../config/b2btrading.routes.config";
 import FilterAccordian from "../../components/Common/FilterAccordian";
 import B2BTradingFilter, {
   ListView,
 } from "../../cw-generated-forms/B2BTradingFilter";
 import requestOptions from "../../utils/fnServices/requestOptions";
+import ActionMenuItem from "../../components/Common/ActionMenuItem";
 
 const contractColumns = [
   { fieldName: "ITM_CTC_ID", label: "Contract", flex: 1, minWidth: 140 },
@@ -74,21 +79,52 @@ export default function B2BTradingContracts() {
   const [selectedContracts, setSelectedContracts] = useState([]);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [tabs, setTabs] = useState("contracts");
-  const formatValue = (col, value) => {
+
+  // action anchor
+  const [actionAnchorEl, setActionAnchorEl] = useState(null);
+  const isActionMenuOpen = Boolean(actionAnchorEl);
+
+  const formatValue = (col, value, rowData) => {
+    console.log("col", col, "value", value);
     if (col.fieldName === "actions") {
+      console.log("contract Action", value);
       return (
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Tooltip title="View Contract">
+          <Tooltip title="Actions">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActionAnchorEl(e.currentTarget);
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </Tooltip>
+          {/* <Tooltip title="View Contract">
             <IconButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate("contract-details", {
-                  state: { contractData: value },
+                  state: { contractData: rowData, actionType: "view" },
                 });
               }}
             >
               <Visibility />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Copy Contract">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("create-contract", {
+                  state: { editContractData: rowData, actionType: "clone" },
+                });
+              }}
+            >
+              <Copy />
             </IconButton>
           </Tooltip>
           <Tooltip title="Edit Contract">
@@ -97,13 +133,13 @@ export default function B2BTradingContracts() {
               onClick={(e) => {
                 e.stopPropagation();
                 navigate("create-contract", {
-                  state: { editContractData: value },
+                  state: { editContractData: rowData, actionType: "edit" },
                 });
               }}
             >
               <Pencil />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
         </Box>
       );
     }
@@ -112,7 +148,12 @@ export default function B2BTradingContracts() {
         <Chip
           label={value}
           size="small"
-          sx={{ fontWeight: 600,height:30, width: 150, ...(b2bTradingStatusStyles[value] || {}) }}
+          sx={{
+            fontWeight: 600,
+            height: 30,
+            width: 150,
+            ...(b2bTradingStatusStyles[value] || {}),
+          }}
         />
       );
     }
@@ -196,12 +237,72 @@ export default function B2BTradingContracts() {
           formatValue={formatValue}
           onRowClick={(row) => {
             navigate("contract-details", {
-              state: { contractData: row },
+              state: { contractData: row, actionType: "view" },
             });
             setSelectedRowData(row);
           }}
         />
       </Box>
+      <Menu
+        id="long-menu"
+        anchorEl={actionAnchorEl}
+        open={isActionMenuOpen}
+        slotProps={{
+          paper: {
+            style: {
+              height:"fit-content"
+              // maxHeight: 48 * 3,
+              // width: "20ch",
+            },
+          },
+          list: {
+            "aria-labelledby": "long-button",
+          },
+        }}
+        onClose={() => setActionAnchorEl(null)}
+      >
+        <MenuList>
+          <ActionMenuItem
+            title="View Contract"
+            icon={<Visibility />}
+            tooltipTitle="View Contract"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("contract-details", {
+                state: { contractData: selectedRowData, actionType: "view" },
+              });
+            }}
+          />
+          <ActionMenuItem
+            title="Clone Contract"
+            icon={<Copy />}
+            tooltipTitle="Clone Contract"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("create-contract", {
+                state: {
+                  editContractData: selectedRowData,
+                  actionType: "clone",
+                },
+              });
+            }}
+          />
+          <ActionMenuItem
+            title="Edit Contract"
+            icon={<Pencil />}
+            tooltipTitle="Edit Contract"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("create-contract", {
+                state: {
+                  editContractData: selectedRowData,
+                  actionType: "edit",
+                },
+              });
+            }}
+          />
+        </MenuList>
+      </Menu>
     </Box>
   );
 }

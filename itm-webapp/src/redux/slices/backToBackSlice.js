@@ -6,7 +6,7 @@ const initialState = {
   contracts: [],
   contractDetails: null,
   contractForm: {
-    currentStep: 5,
+    currentStep: 0,
     headerDetails: {},
     contractItems: [],
     isDirty: false,
