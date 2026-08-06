@@ -14,7 +14,7 @@ const Dashboard = lazy(() => import("../pages/Dashboard"));
 const BackToBackTrading = lazy(() => import("../pages/B2BTrading/BackToBacktradingPage"));
 const PurchaseTrading = lazy(() => import("../pages/PurchaseTrading"));
 const SalesTrading = lazy(() => import("../pages/SalesTrading"));
-const PurchaseOrders = lazy(() => import("../pages/PurchaseOrders"));
+const PurchaseOrders = lazy(() => import("../pages/PurchaseOrders/PurchaseOrdersPage"));
 const SalesOrders = lazy(() => import("../pages/SalesOrders"));
 const OutboundDelivery = lazy(() => import("../pages/OutboundDelivery"));
 const Invoices = lazy(() => import("../pages/Invoices"));

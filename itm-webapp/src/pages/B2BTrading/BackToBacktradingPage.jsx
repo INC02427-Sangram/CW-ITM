@@ -34,7 +34,7 @@ export default function BackToBackTrading() {
       }}
     >
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <ReusableTypography variant="h6" sx={{ fontWeight: 600 }}>
+        <ReusableTypography variant="h5" sx={{ fontWeight: 600 }}>
           Back to Back Trading Dashboard
         </ReusableTypography>
         <ReusableButtons
@@ -42,7 +42,7 @@ export default function BackToBackTrading() {
           icon={<Add />}
           options={[
             {
-              label: "Create New Manually",
+              label: "Create Manually",
               onClick: () => {
                 // resetting incompleted application
                 dispatch(setHeaderDetails({}));

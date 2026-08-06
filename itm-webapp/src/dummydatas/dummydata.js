@@ -493,6 +493,7 @@ export const B2BContractStatCards = [
   { label: "Expiring Soon", value: "3", sub: "Next 30 days" },
   { label: "Expired Contracts", value: "1", sub: "Action Required" },
 ];
+
 export const B2BContractItemsStatCards = [
   { label: "Total Contract Items", value: "24", sub: "+5 this week" },
   { label: "Active Contract Items", value: "18", sub: "Currently Operation" },
@@ -508,4 +509,15 @@ export const tradingStatuses = [
   "Posted to SAP",
   "Expired",
   "Cancelled",
+];
+export const PurchaseOrderStatCards = [
+  { label: "Total Quantity", value: "350000", sub: "up by 12% vs Last Year" },
+  {
+    label: "Executed Quantity",
+    value: "250000",
+    sub: "up by 12% vs Last Year",
+  },
+  { label: "Open Quantity", value: "100000", sub: "pending approval" },
+  { label: "Invoiced Quantity", value: "200000", sub: "pending approval" },
+  { label: "Invoiced Value", value: "€1,500,000", sub: "pending approval" },
 ];

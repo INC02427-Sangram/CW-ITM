@@ -82,11 +82,6 @@ const StyledWrapper = styled.div`
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1;
   }
-
-  .card:hover:before {
-    transform: translateX(-100%);
-  }
-
   .card:after {
     content: "";
     position: absolute;
@@ -97,10 +92,6 @@ const StyledWrapper = styled.div`
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.1));
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1;
-  }
-
-  .card:hover:after {
-    transform: translateX(100%);
   }
 `;
 
