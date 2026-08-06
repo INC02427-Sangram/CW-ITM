@@ -2,7 +2,6 @@ import React from "react";
 import {
   Popover,
   Box,
-  Typography,
   List,
   ListItem,
   ListItemText,
@@ -17,6 +16,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
+import ReusableTypography from "./ReusableTypography";
 
 // Dummy notification data
 const dummyNotifications = [
@@ -90,7 +90,7 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
             borderBottom: "1px solid #e3e7ee",
           }}
         >
-          <Typography
+          <ReusableTypography
             variant="h6"
             sx={{
               fontWeight: 600,
@@ -99,7 +99,7 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
             }}
           >
             Notifications
-          </Typography>
+          </ReusableTypography>
           <IconButton size="small" onClick={onClose}>
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -134,7 +134,7 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
                   </ListItemAvatar>
                   <ListItemText
                     primary={
-                      <Typography
+                      <ReusableTypography
                         variant="body2"
                         sx={{
                           fontWeight: 600,
@@ -144,11 +144,11 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
                         }}
                       >
                         {notification.title}
-                      </Typography>
+                      </ReusableTypography>
                     }
                     secondary={
                       <>
-                        <Typography
+                        <ReusableTypography
                           variant="body2"
                           sx={{
                             fontSize: "13px",
@@ -157,8 +157,8 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
                           }}
                         >
                           {notification.message}
-                        </Typography>
-                        <Typography
+                        </ReusableTypography>
+                        <ReusableTypography
                           variant="caption"
                           sx={{
                             fontSize: "12px",
@@ -166,7 +166,7 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
                           }}
                         >
                           {notification.time}
-                        </Typography>
+                        </ReusableTypography>
                       </>
                     }
                   />
@@ -181,14 +181,14 @@ export default function NotificationsPopover({ anchorEl, open, onClose }) {
                 textAlign: "center",
               }}
             >
-              <Typography
+              <ReusableTypography
                 variant="body2"
                 sx={{
                   color: "#7b818f",
                 }}
               >
                 No notifications
-              </Typography>
+              </ReusableTypography>
             </Box>
           )}
         </List>

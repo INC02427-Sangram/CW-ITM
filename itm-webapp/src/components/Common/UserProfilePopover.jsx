@@ -3,14 +3,13 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   Popover,
   Box,
-  Typography,
   Button,
   Divider,
   Avatar,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { userActions } from "../../redux";
-
+import ReusableTypography from "./ReusableTypography";
 export default function UserProfilePopover({ anchorEl, open, onClose }) {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
@@ -73,7 +72,7 @@ export default function UserProfilePopover({ anchorEl, open, onClose }) {
             {displayName.split(" ").map((n) => n[0]).join("")}
           </Avatar>
           <Box>
-            <Typography
+            <ReusableTypography
               variant="body1"
               sx={{
                 fontWeight: 600,
@@ -83,8 +82,8 @@ export default function UserProfilePopover({ anchorEl, open, onClose }) {
               }}
             >
               {displayName}
-            </Typography>
-            <Typography
+            </ReusableTypography>
+            <ReusableTypography
               variant="body2"
               sx={{
                 fontSize: "13px",
@@ -93,7 +92,7 @@ export default function UserProfilePopover({ anchorEl, open, onClose }) {
               }}
             >
               {userInfo?.email}
-            </Typography>
+            </ReusableTypography>
           </Box>
         </Box>
 
@@ -101,7 +100,7 @@ export default function UserProfilePopover({ anchorEl, open, onClose }) {
 
         {/* Role Section */}
         <Box>
-          <Typography
+          <ReusableTypography
             variant="caption"
             sx={{
               color: "#7b818f",
@@ -111,8 +110,8 @@ export default function UserProfilePopover({ anchorEl, open, onClose }) {
             }}
           >
             Role
-          </Typography>
-          <Typography
+          </ReusableTypography>
+          <ReusableTypography
             variant="body2"
             sx={{
               color: "#2f3136",
@@ -121,7 +120,7 @@ export default function UserProfilePopover({ anchorEl, open, onClose }) {
             }}
           >
             {userInfo?.role}
-          </Typography>
+          </ReusableTypography>
         </Box>
 
         <Divider />

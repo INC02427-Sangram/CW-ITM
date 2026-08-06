@@ -4,10 +4,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
+import ReusableTypography from "../../components/Common/ReusableTypography";
 const MaterialAccordion = ({
   row,
   index,
@@ -28,15 +27,15 @@ const MaterialAccordion = ({
       >
         <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
           <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            <Typography component="span" sx={{ fontSize: 13 }}>
+            <ReusableTypography component="span" sx={{ fontSize: 13 }}>
               #{index + 1}
-            </Typography>
-            <Typography component="span" sx={{ fontSize: 13 }}>
+            </ReusableTypography>
+            <ReusableTypography component="span" sx={{ fontSize: 13 }}>
               {row.supplier || "-"}
-            </Typography>
-            <Typography component="span" sx={{ fontSize: 13 }}>
+            </ReusableTypography>
+            <ReusableTypography component="span" sx={{ fontSize: 13 }}>
               {row.material || "-"}
-            </Typography>
+            </ReusableTypography>
           </Box>
           <Box
             sx={{
@@ -68,7 +67,7 @@ const MaterialAccordion = ({
             .filter((c) => c.key !== "serial" && c.key !== "actions")
             .map((col) => (
               <Box key={`${row.id}-${col.key}`}>
-                <Typography
+                <ReusableTypography
                   sx={{
                     fontSize: 12,
                     fontWeight: 600,
@@ -77,7 +76,7 @@ const MaterialAccordion = ({
                   }}
                 >
                   {col.label}
-                </Typography>
+                </ReusableTypography>
                 <Box>
                   {row.editing
                     ? renderEditableField(row, col.key)

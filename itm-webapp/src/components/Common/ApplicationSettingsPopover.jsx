@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Popover,
   Box,
   Typography,
   Divider,
   IconButton,
-  Tooltip,
   TextField,
   Select,
   MenuItem,
@@ -13,8 +12,8 @@ import {
   Autocomplete,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { setPreferences } from "../../redux/slices/userSlice";
 import {
   dateFormatOptions,
@@ -23,16 +22,28 @@ import {
   dateSettings,
 } from "../../config/timeConfigs";
 import Button from "../CommonMUI/CustomButton";
+
 export default function ApplicationSettingsPopover({
   anchorEl,
   open,
   onClose,
 }) {
   const dispatch = useDispatch();
+  const { i18n } = useTranslation();
   const userPreferences = useSelector((state) => state.user.preferences);
   const [preferences, setPreferencesState] = useState(userPreferences);
+
+  useEffect(() => {
+    if (open) {
+      setPreferencesState(userPreferences);
+    }
+  }, [open, userPreferences]);
+
   const handleSave = () => {
     dispatch(setPreferences(preferences));
+    if (preferences.language && preferences.language !== i18n.language) {
+      i18n.changeLanguage(preferences.language);
+    }
     onClose();
   };
 
@@ -128,7 +139,7 @@ export default function ApplicationSettingsPopover({
                 console.log("Selected Date Format:", newValue);
                 setPreferencesState((prev) => ({
                   ...prev,
-                  dateFormat: newValue.key,
+                  dateFormat: newValue?.key,
                 }));
               }}
             />
@@ -202,13 +213,12 @@ export default function ApplicationSettingsPopover({
               variant="body2"
               sx={{ fontWeight: 600, mb: 0.5, color: "#2f3136" }}
             >
-              Default Language <span style={{ color: "red" }}>*</span>
+              Application Language <span style={{ color: "red" }}>*</span>
             </Typography>
             <FormControl fullWidth size="small">
               <Select
-                defaultValue={preferences.language || "en"}
+                value={preferences.language || "en"}
                 onChange={(event) => {
-                  console.log("Selected Language:", event.target.value);
                   setPreferencesState((prev) => ({
                     ...prev,
                     language: event.target.value,

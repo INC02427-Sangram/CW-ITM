@@ -2,7 +2,6 @@ import React from "react";
 import {
   Popover,
   Box,
-  Typography,
   List,
   ListItem,
   ListItemIcon,
@@ -17,7 +16,7 @@ import WarningIcon from "@mui/icons-material/Warning";
 import StorageIcon from "@mui/icons-material/Storage";
 import SpeedIcon from "@mui/icons-material/Speed";
 import CloudIcon from "@mui/icons-material/Cloud";
-
+import ReusableTypography from "./ReusableTypography";
 // Dummy system health data
 const systemHealthData = {
   status: "Operational",
@@ -112,7 +111,7 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography
+            <ReusableTypography
               variant="h6"
               sx={{
                 fontWeight: 600,
@@ -121,7 +120,7 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
               }}
             >
               System Health
-            </Typography>
+            </ReusableTypography>
             <Chip
               label={overallStatus}
               size="small"
@@ -149,7 +148,7 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
           >
             <Box sx={{ textAlign: "center" }}>
               <SpeedIcon sx={{ color: "#123db8", fontSize: 20, mb: 0.5 }} />
-              <Typography
+              <ReusableTypography
                 variant="caption"
                 sx={{
                   display: "block",
@@ -159,8 +158,8 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 }}
               >
                 Avg Response
-              </Typography>
-              <Typography
+              </ReusableTypography>
+              <ReusableTypography
                 variant="body2"
                 sx={{
                   fontWeight: 600,
@@ -169,11 +168,11 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 }}
               >
                 45ms
-              </Typography>
+              </ReusableTypography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
               <CloudIcon sx={{ color: "#123db8", fontSize: 20, mb: 0.5 }} />
-              <Typography
+              <ReusableTypography
                 variant="caption"
                 sx={{
                   display: "block",
@@ -183,8 +182,8 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 }}
               >
                 Uptime
-              </Typography>
-              <Typography
+              </ReusableTypography>
+              <ReusableTypography
                 variant="body2"
                 sx={{
                   fontWeight: 600,
@@ -193,11 +192,11 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 }}
               >
                 99.8%
-              </Typography>
+              </ReusableTypography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
               <StorageIcon sx={{ color: "#123db8", fontSize: 20, mb: 0.5 }} />
-              <Typography
+              <ReusableTypography
                 variant="caption"
                 sx={{
                   display: "block",
@@ -207,8 +206,8 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 }}
               >
                 Services
-              </Typography>
-              <Typography
+              </ReusableTypography>
+              <ReusableTypography
                 variant="body2"
                 sx={{
                   fontWeight: 600,
@@ -217,7 +216,7 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 }}
               >
                 {systemHealthData.services.length}
-              </Typography>
+              </ReusableTypography>
             </Box>
           </Box>
         </Box>
@@ -239,7 +238,7 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography
+                    <ReusableTypography
                       variant="body2"
                       sx={{
                         fontWeight: 600,
@@ -248,10 +247,10 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                       }}
                     >
                       {service.name}
-                    </Typography>
+                    </ReusableTypography>
                   }
                   secondary={
-                    <Typography
+                    <ReusableTypography
                       variant="caption"
                       sx={{
                         fontSize: "12px",
@@ -259,7 +258,7 @@ export default function SystemHealthPopover({ anchorEl, open, onClose }) {
                       }}
                     >
                       {service.responseTime} • Uptime: {service.uptime}
-                    </Typography>
+                    </ReusableTypography>
                   }
                 />
               </ListItem>

@@ -1,12 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  BottomNavigation,
-  Box,
-  Chip,
-  IconButton,
-  Typography,
-} from "@mui/material";
+import { BottomNavigation, Box, Chip, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import SendIcon from "@mui/icons-material/Send";
 import ReusableTypography from "../../components/Common/ReusableTypography";
@@ -257,15 +251,18 @@ export default function ContractDetails({ contractData }) {
             sx={{ fontSize: 18, fontWeight: 700, color: "#2f3136" }}
           >
             Back to Back Trading Contract Details{" "}
-            <Typography
+            <ReusableTypography
               component="span"
               sx={{ fontWeight: 400, color: "#7b818f", fontSize: 16 }}
             >
               :
-            </Typography>{" "}
-            <Typography component="span" sx={{ fontWeight: 700, fontSize: 16 }}>
+            </ReusableTypography>{" "}
+            <ReusableTypography
+              component="span"
+              sx={{ fontWeight: 700, fontSize: 16 }}
+            >
               {resolvedContractData.contractNumber}
-            </Typography>
+            </ReusableTypography>
           </ReusableTypography>
         </Box>
         <Button
@@ -306,9 +303,11 @@ export default function ContractDetails({ contractData }) {
             pr: 5,
           }}
         >
-          <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}>
+          <ReusableTypography
+            sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}
+          >
             Contract Header Details
-          </Typography>
+          </ReusableTypography>
           <Chip
             label={resolvedContractData.status}
             size="small"
@@ -333,14 +332,16 @@ export default function ContractDetails({ contractData }) {
                 alignItems: "flex-start",
               }}
             >
-              <Typography sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}>
+              <ReusableTypography
+                sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}
+              >
                 {field.label}:
-              </Typography>
-              <Typography
+              </ReusableTypography>
+              <ReusableTypography
                 sx={{ fontSize: 13, fontWeight: 600, color: "#2f3136" }}
               >
                 {detailValues[field.key] ?? "-"}
-              </Typography>
+              </ReusableTypography>
             </Box>
           ))}
         </Box>
@@ -372,7 +373,7 @@ export default function ContractDetails({ contractData }) {
               mt: field.emphasize ? 1 : 0,
             }}
           >
-            <Typography
+            <ReusableTypography
               sx={{
                 fontSize: field.emphasize ? 14 : 13,
                 fontWeight: field.emphasize ? 700 : 400,
@@ -380,8 +381,8 @@ export default function ContractDetails({ contractData }) {
               }}
             >
               {field.label}
-            </Typography>
-            <Typography
+            </ReusableTypography>
+            <ReusableTypography
               sx={{
                 fontSize: field.emphasize ? 15 : 13,
                 fontWeight: field.emphasize ? 700 : 600,
@@ -389,7 +390,7 @@ export default function ContractDetails({ contractData }) {
               }}
             >
               {detailValues[field.key]}
-            </Typography>
+            </ReusableTypography>
           </Box>
         ))}
       </Box>

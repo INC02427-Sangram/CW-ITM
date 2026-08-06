@@ -16,7 +16,6 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
@@ -30,6 +29,8 @@ import ViewAgendaIcon from "@mui/icons-material/ViewAgenda";
 import ReusableToast from "../../components/Common/ReusableToast";
 import Button from "../../components/CommonMUI/CustomButton";
 import MaterialAccordion from "../../components/Common/MaterialAccordion";
+import ReusableTypography from "../../components/Common/ReusableTypography";
+
 const MATERIAL_OPTIONS = [
   "Glycol - 2114",
   "Lens - XJ720",
@@ -472,9 +473,9 @@ const AddMaterial = forwardRef(
       if (columnKey === "serial") {
         return (
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography component="span" sx={{ fontSize: 13 }}>
+            <ReusableTypography component="span" sx={{ fontSize: 13 }}>
               {index + 1}
-            </Typography>
+            </ReusableTypography>
           </Box>
         );
       }
@@ -606,9 +607,9 @@ const AddMaterial = forwardRef(
             top: 0,
           }}
         >
-          <Typography sx={{ fontSize: 15, fontWeight: 600, color: "#2f3136" }}>
+          <ReusableTypography sx={{ fontSize: 15, fontWeight: 600, color: "#2f3136" }}>
             Contract Items
-          </Typography>
+          </ReusableTypography>
           <Box sx={{ display: "flex", gap: 1 }}>
             {!readOnly && (
               <Button

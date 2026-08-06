@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import ReusableTypography from "./ReusableTypography";
 const Card = ({ title, subtitle, description, onClick }) => {
   return (
     <StyledWrapper>
@@ -15,13 +16,13 @@ const Card = ({ title, subtitle, description, onClick }) => {
             height: "100%",
           }}
         >
-          <Typography sx={{ color: "#636e72", fontWeight: 600, fontSize: 14 }}>
+          <ReusableTypography sx={{ color: "#636e72", fontWeight: 600, fontSize: 14 }}>
             {title}
-          </Typography>
-          <Typography sx={{ color: "#1F2A44", fontWeight: 800, fontSize: 24 }}>
+          </ReusableTypography>
+          <ReusableTypography sx={{ color: "#1F2A44", fontWeight: 800, fontSize: 24 }}>
             {subtitle}
-          </Typography>
-          <Typography
+          </ReusableTypography>
+          <ReusableTypography
             sx={{
               color: "#636e72",
               fontWeight: 400,
@@ -30,7 +31,7 @@ const Card = ({ title, subtitle, description, onClick }) => {
             }}
           >
             {description}
-          </Typography>
+          </ReusableTypography>
 
         </Box>
       </Box>

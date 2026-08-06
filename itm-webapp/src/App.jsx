@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 import "./App.css";
 import "./theme-light.css";
 import AppHeader from "./components/MainContainer/AppHeader";
@@ -9,16 +10,16 @@ import MainContainer from "./components/MainContainer/MainContainer";
 
 function App() {
   const { i18n } = useTranslation();
+  const language = useSelector((state) => state.user.preferences.language);
 
-  // loading language from local system when application loads for the first time
+  // Keep i18n in sync with the language saved in Application Settings
   useEffect(() => {
-    try {
-      const browserLang = navigator.language.split("-")[0];
-      i18n.changeLanguage(browserLang);
-    } catch (error) {
+    if (!language || i18n.language === language) return;
+
+    i18n.changeLanguage(language).catch((error) => {
       console.error("Error changing language: ", error);
-    }
-  }, [i18n]);
+    });
+  }, [i18n, language]);
 
   return (
     <BrowserRouter>

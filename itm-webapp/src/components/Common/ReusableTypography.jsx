@@ -7,13 +7,17 @@ const ReusableTypography = ({
   variant = "body1",
   sx,
   component = "span",
+  translate = true,
   ...props
 }) => {
   const { t } = useTranslation();
 
+  const content =
+    translate && typeof children === "string" ? t(children) : children;
+
   return (
     <Typography variant={variant} component={component} sx={sx} {...props}>
-      {children ?? t(children)}
+      {content}
     </Typography>
   );
 };

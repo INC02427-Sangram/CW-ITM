@@ -24,6 +24,7 @@ const dateFormatOptions = [
 
 const languageOptions = [
   { key: "en", value: "English" },
+  { key: "hi", value: "Hindi" },
   { key: "de", value: "German" },
   { key: "es", value: "Spanish" },
   { key: "fr", value: "French" },
@@ -45,7 +46,7 @@ const timeFormats = [
 const dateSettings = [
   { key: "10",value:"10", label: "This Week" },
   { key: "20", value: "20", label: "This Month" },
-  { key: "25", value: "25", label: "Last one Month" },
+  { key: "25", value: "25", label: "Last One Month" },
   { key: "30", value: "30", label: "Last Month" },
   { key: "40", value: "40", label: "Current Quater" },
   { key: "50", value: "50", label: "Last Quater" },

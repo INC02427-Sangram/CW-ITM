@@ -13,10 +13,10 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Button from "../CommonMUI/CustomButton";
+import ReusableTypography from "./ReusableTypography";
 const FilterAccordian = ({
   title = "Filters",
   initialValues = {},
@@ -46,9 +46,9 @@ const FilterAccordian = ({
           borderRadius: expanded ? "8px 8px 0 0" : "8px",
         }}
       >
-        <Typography sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}>
+        <ReusableTypography sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}>
           {title}
-        </Typography>
+        </ReusableTypography>
       </AccordionSummary>
       <AccordionDetails sx={{ p: 3 }}>
         <Box>{filterFieldsComponent ? filterFieldsComponent : <></>}</Box>

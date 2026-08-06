@@ -4,7 +4,6 @@ import {
   Chip,
   Dialog,
   IconButton,
-  Typography,
   Divider,
   BottomNavigation,
 } from "@mui/material";
@@ -336,7 +335,7 @@ export default function CreateB2BTradingContractPage() {
                 }}
               >
                 <StepNode step={step} />
-                <Typography
+                <ReusableTypography
                   sx={{
                     fontSize: 12,
                     fontWeight: step.state === "active" ? 600 : 500,
@@ -349,7 +348,7 @@ export default function CreateB2BTradingContractPage() {
                   }}
                 >
                   {step.label}
-                </Typography>
+                </ReusableTypography>
               </Box>
               {index < steps.length - 1 && (
                 <Divider

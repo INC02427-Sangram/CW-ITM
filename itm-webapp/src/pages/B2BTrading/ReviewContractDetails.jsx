@@ -10,10 +10,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
+import ReusableTypography from "../../components/Common/ReusableTypography";
 const MONTHS = [
   "Jan",
   "Feb",
@@ -166,11 +165,11 @@ export default function ReviewContractDetails({
               backgroundColor: "#f2f6ff",
             }}
           >
-            <Typography
+            <ReusableTypography
               sx={{ fontSize: 15, fontWeight: 700, color: "#2f3136" }}
             >
               {section.title}
-            </Typography>
+            </ReusableTypography>
           </AccordionSummary>
           <AccordionDetails>
             <Box
@@ -190,14 +189,14 @@ export default function ReviewContractDetails({
                     alignItems: "flex-start",
                   }}
                 >
-                  <Typography sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}>
+                  <ReusableTypography sx={{ fontSize: 12, color: "#7b818f", mb: 0.5 }}>
                     {field.label}:
-                  </Typography>
-                  <Typography
+                  </ReusableTypography>
+                  <ReusableTypography
                     sx={{ fontSize: 13, fontWeight: 600, color: "#2f3136" }}
                   >
                     {displayValues[field.key] || "-"}
-                  </Typography>
+                  </ReusableTypography>
                 </Box>
               ))}
             </Box>
@@ -206,7 +205,7 @@ export default function ReviewContractDetails({
       ))}
 
       <Box sx={sectionCardSx}>
-        <Typography
+        <ReusableTypography
           sx={{
             fontSize: 14,
             fontWeight: 700,
@@ -216,7 +215,7 @@ export default function ReviewContractDetails({
           }}
         >
           Contract Items
-        </Typography>
+        </ReusableTypography>
         <TableContainer
           sx={{ border: "1px solid #d9dee7", borderRadius: "6px" }}
         >
@@ -299,7 +298,7 @@ export default function ReviewContractDetails({
               mt: row.emphasize ? 1 : 0,
             }}
           >
-            <Typography
+            <ReusableTypography
               sx={{
                 fontSize: row.emphasize ? 14 : 13,
                 fontWeight: row.emphasize ? 700 : 400,
@@ -307,8 +306,8 @@ export default function ReviewContractDetails({
               }}
             >
               {row.label}
-            </Typography>
-            <Typography
+            </ReusableTypography>
+            <ReusableTypography
               sx={{
                 fontSize: row.emphasize ? 15 : 13,
                 fontWeight: row.emphasize ? 700 : 600,
@@ -320,7 +319,7 @@ export default function ReviewContractDetails({
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
-            </Typography>
+            </ReusableTypography>
           </Box>
         ))}
       </Box>
