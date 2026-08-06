@@ -26,10 +26,10 @@ export default function PurchaseOrdersPage() {
     >
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <ReusableTypography variant="h5" sx={{ fontWeight: 600 }}>
-          {t("Purchase Orders")}
+          Purchase Orders
         </ReusableTypography>
         <ReusableButtons type="button" icon={<Add />}>
-          New Purchase Order
+          <ReusableTypography>New Purchase Order</ReusableTypography>
         </ReusableButtons>
       </Box>
       <Tabs
@@ -42,13 +42,13 @@ export default function PurchaseOrdersPage() {
           },
         }}
       >
-        <Tab label="Purchase Orders" value="purchase-orders" />
-        <Tab label="Purchase Order Items" value="purchase-order-items" />
+        <Tab label={<ReusableTypography>Purchase Orders</ReusableTypography>} value="purchase-orders" />
+        <Tab label={<ReusableTypography>Purchase Order Items</ReusableTypography>} value="purchase-order-items" />
       </Tabs>
       <Box display={tabs === "purchase-orders" ? "block" : "none"}>
         <PurchaseOrders />
       </Box>
-    {/*   <Box display={tabs === "purchase-order-items" ? "block" : "none"}>
+      {/*   <Box display={tabs === "purchase-order-items" ? "block" : "none"}>
         <PurchaseOrderItems />
       </Box> */}
     </Box>
