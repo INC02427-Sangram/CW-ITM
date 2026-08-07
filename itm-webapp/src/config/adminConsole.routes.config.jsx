@@ -203,5 +203,33 @@ export const iwaApplicationMasterRoutes = [
   },
 ];
 
+/**
+ * Nested routes under /admin-console/iwa/groups
+ */
+export const iwaGroupsRoutes = [
+  {
+    id: "create-group",
+    path: "createGroup",
+    component: lazy(
+      () =>
+        import("../pages/Admin Console/IWA-UserManagement/Groups/CreateGroup"),
+    ),
+  },
+  {
+    id: "view-group",
+    path: "viewGroup/:groupId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Groups/ViewGroup"),
+    ),
+  },
+  {
+    id: "edit-group",
+    path: "editGroup/:groupId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Groups/Editgroup"),
+    ),
+  },
+];
+
 export const getAdminConsoleSubNavItems = () =>
   [...adminConsoleSubNavItems].sort((a, b) => a.index - b.index);
