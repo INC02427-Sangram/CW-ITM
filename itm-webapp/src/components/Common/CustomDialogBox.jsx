@@ -5,49 +5,66 @@ import {
   DialogTitle,
   IconButton,
   DialogContent,
-  DialogActions 
+  DialogActions,
 } from "@mui/material";
-import ReusableButtons from "./ReusableButtons";
 import CloseIcon from "@mui/icons-material/Close";
-const CustomDialogBox = ({ open, handleClose, component }) => {
-  const BootstrapDialog = styled(Dialog)(({ theme }) => ({
-    "& .MuiDialogContent-root": {
-      padding: theme.spacing(2),
-    },
-    "& .MuiDialogActions-root": {
-      padding: theme.spacing(1),
-    },
-  }));
+import CustomButton from "../CommonMUI/CustomButton";
+import ReusableTypography from "./ReusableTypography";
+
+// Must live outside the component — defining styled() inside render creates a
+// new component type every render and remounts the dialog when children update
+// (e.g. after a file is added to the dropzone), which corrupts layout/styles.
+const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+  "& .MuiDialogContent-root": {
+    padding: theme.spacing(2),
+  },
+  "& .MuiDialogActions-root": {
+    padding: theme.spacing(1),
+  },
+}));
+
+const CustomDialogBox = ({ title, open, handleClose, component }) => {
   return (
-    <React.Fragment>
-      <BootstrapDialog
-        onClose={handleClose}
-        aria-labelledby="customized-dialog-title"
-        open={open}
+    <BootstrapDialog
+      fullWidth
+      maxWidth="md"
+      onClose={handleClose}
+      aria-labelledby="customized-dialog-title"
+      open={open}
+    >
+      <DialogTitle
+        id="customized-dialog-title"
+        sx={{
+          m: 0,
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+        }}
       >
-        <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          Modal title
-        </DialogTitle>
+        <ReusableTypography
+          sx={{ fontSize: "2rem", fontWeight: 600, color: "#2f3136" }}
+        >
+          {title}
+        </ReusableTypography>
         <IconButton
           aria-label="close"
           onClick={handleClose}
-          sx={(theme) => ({
-            position: "absolute",
-            right: 8,
-            top: 8,
-            color: theme.palette.grey[500],
-          })}
+          sx={{ color: "#2f3136", flexShrink: 0 }}
         >
           <CloseIcon />
         </IconButton>
-        <DialogContent dividers>{component}</DialogContent>
-        <DialogActions>
-          <ReusableButtons autoFocus onClick={handleClose}>
-            Save changes
-          </ReusableButtons>
-        </DialogActions>
-      </BootstrapDialog>
-    </React.Fragment>
+      </DialogTitle>
+      <DialogContent dividers sx={{ overflow: "auto" }}>
+        {component}
+      </DialogContent>
+      <DialogActions>
+        <CustomButton autoFocus onClick={handleClose}>
+          Submit
+        </CustomButton>
+      </DialogActions>
+    </BootstrapDialog>
   );
 };
 

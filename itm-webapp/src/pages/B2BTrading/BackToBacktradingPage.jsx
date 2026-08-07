@@ -15,13 +15,22 @@ import {
   setHeaderDetails,
   setCurrentStep,
 } from "../../redux/slices/backToBackSlice";
+import FileDragAndDrop from "../../components/Common/FileDragAndDrop";
 
 const EmailUploadForm = () => {
-  return <>Email Upload Form</>;
+  return (
+    <>
+      <FileDragAndDrop acceptedFiles={[".eml", ".msg"]} filesLimit={1} handleUpload={() => {}} />
+    </>
+  );
 };
 
 const ExcelUploadForm = () => {
-  return <>Excel Upload Form</>;
+  return (
+    <>
+      <FileDragAndDrop acceptedFiles={[".xlsx", ".xls"]} filesLimit={1} handleUpload={() => {}} />
+    </>
+  );
 };
 
 export default function BackToBackTrading() {
@@ -123,6 +132,7 @@ export default function BackToBackTrading() {
       </Box>
       {excelUploadAnchorEl && (
         <CustomDialogBox
+          title="Upload Excel File"
           open={excelUploadAnchorEl}
           handleClose={() => setExcelUploadAnchorEl(false)}
           component={<ExcelUploadForm />}
@@ -130,6 +140,7 @@ export default function BackToBackTrading() {
       )}
       {emailUploadAnchorEl && (
         <CustomDialogBox
+          title="Upload Email File"
           open={emailUploadAnchorEl}
           handleClose={() => setEmailUploadAnchorEl(false)}
           component={<EmailUploadForm />}
