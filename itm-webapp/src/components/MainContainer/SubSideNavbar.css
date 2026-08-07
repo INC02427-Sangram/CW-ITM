@@ -1,0 +1,167 @@
+.subSideNavHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.subSideNavTitle {
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0.01em;
+}
+
+.subSideNavList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  flex: 1;
+}
+
+.subSideNavOptionTile {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.subSideNavOptionTile:hover:not(.selectedOption) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.subSideNavOptionTile:hover:not(.selectedOption) .subSideNavIconBadge,
+.subSideNavOptionTile:hover:not(.selectedOption) .subSideNavIconBadge svg {
+  color: #a5b4fc;
+}
+
+.subSideNavOptionTile.selectedOption {
+  background: #fff;
+}
+
+.subSideNavOptionTile.accordionHeader.parentActive:not(.selectedOption) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.subSideNavIconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  line-height: 0;
+}
+
+.subSideNavIconBadge svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  color: inherit;
+  fill: currentColor;
+}
+
+.subSideNavOptionTile.selectedOption .subSideNavIconBadge {
+  background: #edebff;
+  color: #3730c7;
+}
+
+.subSideNavOptionTile.selectedOption .subSideNavIconBadge svg {
+  color: #3730c7;
+  fill: #3730c7;
+}
+
+.subSideNavLabel {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: "Roboto", sans-serif;
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subSideNavOptionTile.selectedOption .subSideNavLabel {
+  color: #1f2a44;
+  font-weight: 700;
+}
+
+.subSideNavChevron {
+  width: 18px !important;
+  height: 18px !important;
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.subSideNavChevron.expanded {
+  transform: rotate(180deg);
+  color: #fff;
+}
+
+.subSideNavAccordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.subSideNavAccordionPanel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s ease;
+}
+
+.subSideNavAccordionPanel.expanded {
+  grid-template-rows: 1fr;
+}
+
+.subSideNavAccordionInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 4px;
+}
+
+.subSideNavOptionTile.nestedOption {
+  padding: 7px 10px 7px 18px;
+}
+
+.subSideNavOptionTile.nestedOption .subSideNavIconBadge {
+  width: 28px;
+  height: 28px;
+}
+
+.subSideNavOptionTile.nestedOption .subSideNavIconBadge svg {
+  width: 18px;
+  height: 18px;
+}
+
+.subSideNavOptionTile.nestedOption .subSideNavLabel {
+  font-size: 12px;
+  font-weight: 500;
+}

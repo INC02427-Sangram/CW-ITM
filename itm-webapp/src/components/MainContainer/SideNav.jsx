@@ -2,11 +2,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef, useCallback } from "react";
 import "./SideNav.css";
-import { Box, IconButton, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { getSideNavItems } from "../../config/sidenav.config";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import CloseIcon from "@mui/icons-material/Close";
 import { MoreApps } from "@cw/rds/icons";
+import SubSideNavbar from "./SubSideNavbar";
 // TODO: replace with actual theme from @mui/material useTheme
 const theme = {
   palette: {
@@ -53,6 +52,8 @@ export default function SideNav() {
   const { t } = useTranslation();
   const [currentModule, setCurrentModule] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [subNavOpen, setSubNavOpen] = useState(false);
+  const [activeSubNav, setActiveSubNav] = useState(null);
 
   // Sliding hover highlight, tracked separately for the main list and the drawer list
   const mainHighlight = useSlideHighlight();
@@ -146,16 +147,13 @@ export default function SideNav() {
     };
   }, [orderedNavigationItems]);
 
-  // Track current module based on pathname
+  // Track current module based on pathname only.
+  // Sub-nav drawer open state is controlled by click, not by route.
   useEffect(() => {
     const path = location.pathname;
 
-    // Find matching navigation item based on path
     const matchedItem = navigationItems.find((item) => {
-      // Remove /* wildcard from path for matching
       const cleanPath = item.path.replace("/*", "");
-      // Exact match, or a real sub-path (not just a string prefix - e.g.
-      // "/admin-console2" must not match the "/admin-console" item)
       return path === cleanPath || path.startsWith(cleanPath + "/");
     });
 
@@ -165,11 +163,18 @@ export default function SideNav() {
   }, [location.pathname, navigationItems]);
 
   const onSelectModule = (navItem, isInDrawer = false) => {
-    setCurrentModule(navItem.moduleName);
-    // Remove /* wildcard from path for navigation
-    const cleanPath = navItem.path.replace("/*", "");
-    navigate(cleanPath);
-    setDrawerOpen(false); // Close drawer when navigating
+    setDrawerOpen(false); // Close overflow drawer when selecting
+
+    if (navItem.children?.length) {
+      // Parent with nested nav: open sub-drawer only, do not navigate
+      setActiveSubNav(navItem);
+      setSubNavOpen(true);
+    } else {
+      setCurrentModule(navItem.moduleName);
+      setActiveSubNav(null);
+      setSubNavOpen(false);
+      navigate(navItem.path.replace("/*", ""));
+    }
 
     if (isInDrawer) {
       // Promote the selected item into the visible list, swapping it with
@@ -189,6 +194,8 @@ export default function SideNav() {
     }
   };
 
+  const closeSubNav = () => setSubNavOpen(false);
+
   const renderIcon = (IconComponent) => {
     if (!IconComponent) return <span className="sideNavOptionIcon"></span>;
     return (
@@ -199,7 +206,10 @@ export default function SideNav() {
   };
 
   const renderNavItem = (navItem, isInDrawer = false, highlight = null) => {
-    const isSelected = currentModule === navItem.moduleName;
+    const cleanPath = navItem.path.replace("/*", "");
+    const path = location.pathname;
+    const isSelected =
+      path === cleanPath || path.startsWith(cleanPath + "/");
     const translatedLabel = t(navItem.label);
 
     return (
@@ -389,6 +399,16 @@ export default function SideNav() {
           </Box>
         </Box>
       </Box>
+
+      {/* Nested module drawer (e.g. Admin Console → IDM / IWA) */}
+      {activeSubNav?.children?.length > 0 && (
+        <SubSideNavbar
+          open={subNavOpen}
+          onClose={closeSubNav}
+          title={activeSubNav.label}
+          items={activeSubNav.children}
+        />
+      )}
     </>
   );
 }

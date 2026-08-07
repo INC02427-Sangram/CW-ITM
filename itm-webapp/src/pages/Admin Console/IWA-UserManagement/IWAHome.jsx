@@ -1,9 +1,8 @@
-import { Routes, Route, Navigate } from "react-router-dom";
 import { Suspense } from "react";
-import { CircularProgress, Box } from "@mui/material";
-import { sideNavConfig } from "../../config/sidenav.config";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Box, CircularProgress } from "@mui/material";
+import { iwaRoutes } from "../../../config/adminConsole.routes.config";
 
-// Loading fallback component
 const LoadingFallback = () => (
   <Box
     sx={{
@@ -18,23 +17,22 @@ const LoadingFallback = () => (
   </Box>
 );
 
-const MainContainer = () => {
+export default function IWAHome() {
   return (
-    <div className="mainContent">
+    <Box sx={{ height: "100%", minHeight: 0 }}>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {sideNavConfig.map((route) => (
+          <Route index element={<Navigate to="users" replace />} />
+          {iwaRoutes.map((route) => (
             <Route
               key={route.id}
               path={route.path}
               element={<route.component />}
             />
           ))}
+          <Route path="*" element={<Navigate to="users" replace />} />
         </Routes>
       </Suspense>
-    </div>
+    </Box>
   );
-};
-
-export default MainContainer;
+}
