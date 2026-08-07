@@ -5,7 +5,7 @@ import ReusableTypography from "./ReusableTypography";
 const Card = ({ title, subtitle, description, onClick }) => {
   return (
     <StyledWrapper>
-      <Box className="card" onClick={onClick}>
+      <Box className="tile-card" onClick={onClick}>
         <Box
           sx={{
             padding: "0.5rem 1rem 0.5rem 1.5rem",
@@ -43,7 +43,7 @@ const StyledWrapper = styled.div`
   width: 100%;
   height: 65%;
 
-  .card {
+  .tile-card {
     width: 100%;
     height: 100%;
     min-height: 100px;
@@ -78,24 +78,12 @@ const StyledWrapper = styled.div`
     height: 100%;
   }
 
-  .card-content .card-title {
-    font-size: 14px;
-    color: inherit;
-    text-transform: uppercase;
-  }
-
-  .card-content .card-para {
-    color: inherit;
-    opacity: 0.8;
-    font-size: 12px;
-  }
-
-  .card:hover {
+  .tile-card:hover {
     transform: rotateY(10deg) rotateX(10deg) scale(1.01);
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   }
 
-  .card:before {
+  .tile-card:before {
     content: "";
     position: absolute;
     top: 0;
@@ -106,7 +94,7 @@ const StyledWrapper = styled.div`
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1;
   }
-  .card:after {
+  .tile-card:after {
     content: "";
     position: absolute;
     top: 0;

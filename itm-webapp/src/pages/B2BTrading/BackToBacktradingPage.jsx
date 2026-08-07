@@ -20,7 +20,13 @@ import FileDragAndDrop from "../../components/Common/FileDragAndDrop";
 const EmailUploadForm = () => {
   return (
     <>
-      <FileDragAndDrop acceptedFiles={[".eml", ".msg"]} filesLimit={1} handleUpload={() => {}} />
+      <Box sx={{ p: 2 }}>
+        <FileDragAndDrop
+          acceptedFiles={[".eml", ".msg"]}
+          filesLimit={1}
+          handleUpload={() => {}}
+        />
+      </Box>
     </>
   );
 };
@@ -28,7 +34,13 @@ const EmailUploadForm = () => {
 const ExcelUploadForm = () => {
   return (
     <>
-      <FileDragAndDrop acceptedFiles={[".xlsx", ".xls"]} filesLimit={1} handleUpload={() => {}} />
+      <Box sx={{ p: 2 }}>
+        <FileDragAndDrop
+          acceptedFiles={[".xlsx", ".xls"]}
+          filesLimit={1}
+          handleUpload={() => {}}
+        />
+      </Box>
     </>
   );
 };
