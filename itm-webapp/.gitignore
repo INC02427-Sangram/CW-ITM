@@ -29,7 +29,7 @@ dist-ssr
 # Test environment variables (contains sensitive credentials)
 tests/e2e/.env
 tests/.env
-
+.env
 # Test results and reports (generated files)
 tests/TEST_RESULTS.md
 tests/playwright-report/
