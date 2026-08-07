@@ -1,16 +1,15 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { EditGroup } from "@cw/editgroup";
+import { useNavigate } from "react-router-dom";
+import { CreateGroup } from "@cw/creategroup";
 import { Box } from "@mui/material";
 
 const GROUPS_BASE_PATH = "/admin-console/iwa/groups";
 
-const EditGroupPage = () => {
-  const { groupId } = useParams();
+const CreateGroupPage = () => {
   const navigate = useNavigate();
 
   const selectedEnvironment = String(import.meta.env.VITE_APP_ENV || "");
 
-  const onEditGroupActionClick = (action) => {
+  const onCreateGroupActionClick = (action) => {
     if (action === "groupSummary" || action === "home") {
       navigate(GROUPS_BASE_PATH);
     }
@@ -30,10 +29,9 @@ const EditGroupPage = () => {
 
   return (
     <Box className="outermost-container">
-      <EditGroup
-        groupId={groupId}
-        onEditGroupActionClick={onEditGroupActionClick}
+      <CreateGroup
         app="IWA"
+        onCreateGroupActionClick={onCreateGroupActionClick}
         dateTimeConfig={dateTimeConfig}
         platformConfig={platformConfig}
       />
@@ -41,4 +39,4 @@ const EditGroupPage = () => {
   );
 };
 
-export default EditGroupPage;
+export default CreateGroupPage;

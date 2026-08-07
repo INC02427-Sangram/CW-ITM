@@ -132,5 +132,140 @@ export const iwaRoutes = [
   },
 ];
 
+/**
+ * Nested routes under /admin-console/iwa/users
+ */
+export const iwaUsersRoutes = [
+  {
+    id: "create-user",
+    path: "createUser",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Users/CreateUser"),
+    ),
+  },
+  {
+    id: "quick-create-user",
+    path: "quickCreateUser",
+    component: lazy(
+      () =>
+        import("../pages/Admin Console/IWA-UserManagement/Users/QuickCreateUser"),
+    ),
+  },
+  {
+    id: "view-user",
+    path: "viewUser/:userId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Users/ViewUser"),
+    ),
+  },
+  {
+    id: "edit-user",
+    path: "editUser/:userId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Users/EditUser"),
+    ),
+  },
+];
+
+/**
+ * Nested routes under /admin-console/iwa/application-master
+ */
+export const iwaApplicationMasterRoutes = [
+  {
+    id: "create-application",
+    path: "createApplication",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/ApplicationMaster/CreateApplications"
+        ),
+    ),
+  },
+  {
+    id: "view-application",
+    path: "viewApplication/:appId",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/ApplicationMaster/ViewApplication"
+        ),
+    ),
+  },
+  {
+    id: "edit-application",
+    path: "editApplication/:appId",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/ApplicationMaster/EditApplication"
+        ),
+    ),
+  },
+];
+
+/**
+ * Nested routes under /admin-console/iwa/groups
+ */
+export const iwaGroupsRoutes = [
+  {
+    id: "create-group",
+    path: "createGroup",
+    component: lazy(
+      () =>
+        import("../pages/Admin Console/IWA-UserManagement/Groups/CreateGroup"),
+    ),
+  },
+  {
+    id: "view-group",
+    path: "viewGroup/:groupId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Groups/ViewGroup"),
+    ),
+  },
+  {
+    id: "edit-group",
+    path: "editGroup/:groupId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Groups/Editgroup"),
+    ),
+  },
+];
+
+/**
+ * Nested routes under /admin-console/iwa/roles
+ */
+export const iwaRolesRoutes = [
+  {
+    id: "create-role",
+    path: "createRole",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/Roles/CreateRoleContainer"
+        ),
+    ),
+  },
+  {
+    id: "view-role",
+    path: "viewRole/:roleId/:roleVersionNo/:roleSegment",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/Roles/EditandViewRole"
+        ),
+    ),
+  },
+  {
+    id: "edit-role",
+    path: "editRole/:roleId/:roleVersionNo/:roleSegment",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/Roles/EditandViewRole"
+        ),
+    ),
+  },
+];
+
 export const getAdminConsoleSubNavItems = () =>
   [...adminConsoleSubNavItems].sort((a, b) => a.index - b.index);

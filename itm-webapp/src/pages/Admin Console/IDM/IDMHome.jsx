@@ -7,10 +7,10 @@ export default function IDMHome() {
   return (
     <Box className="outermost-container">
       <Typography variant="h5" fontWeight={600} gutterBottom>
-        {t("IDM")}
+        {t("Rules & Decision Management")}
       </Typography>
       <Typography variant="body1" color="text.secondary">
-        Identity Management content will be loaded here.
+        Decision Management content will be loaded here.
       </Typography>
     </Box>
   );
