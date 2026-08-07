@@ -24,11 +24,6 @@ const MainContainer = () => {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          {/* Approuter welcomeFile serves /index.html; redirect to default route */}
-          <Route
-            path="/index.html"
-            element={<Navigate to="/dashboard" replace />}
-          />
           {sideNavConfig.map((route) => (
             <Route
               key={route.id}
