@@ -46,6 +46,7 @@
     "token-validity": 60480,
     "refresh-token-validity": 2592000,
     "redirect-uris": [
+      "https://*.cfapps.eu10-004.hana.ondemand.com/**",
       "https://*.eu10-004.hana.ondemand.com/**",
       "https://**.applicationstudio.cloud.sap/**",
       "http://localhost:5000/login/callback"

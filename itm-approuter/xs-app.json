@@ -21,7 +21,7 @@
       "csrfProtection": false
     },
     {
-      "source":"/(.*)$",
+      "source": "^/api/(.*)$",
       "target":"/$1",
       "destination":"cw-itm-contract-service",
       "authenticationType":"xsuaa", 
