@@ -10,14 +10,26 @@ import { b2bTradingRoutes } from "../../config/b2btrading.routes.config";
 import B2BTradingContracts from "./B2BTradingContracts";
 import B2BTradingContractsItems from "./B2BTradingContractsItems";
 import { Grid } from "@cw/rds/layout";
+import CustomDialogBox from "../../components/Common/CustomDialogBox";
 import {
   setHeaderDetails,
   setCurrentStep,
 } from "../../redux/slices/backToBackSlice";
 
+const EmailUploadForm = () => {
+  return <>Email Upload Form</>;
+};
+
+const ExcelUploadForm = () => {
+  return <>Excel Upload Form</>;
+};
+
 export default function BackToBackTrading() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const [excelUploadAnchorEl, setExcelUploadAnchorEl] = useState(null);
+  const [emailUploadAnchorEl, setEmailUploadAnchorEl] = useState(null);
 
   const [tabs, setTabs] = useState("contracts");
   const { headerDetails } = useSelector(
@@ -63,12 +75,18 @@ export default function BackToBackTrading() {
               },
             {
               label: "Create From Excel",
-              onClick: () => console.log("Create From Excel"),
+              onClick: () => {
+                setExcelUploadAnchorEl(true);
+                console.log("Create From Excel");
+              },
               icon: <GridView />,
             },
             {
               label: "Create From Email",
-              onClick: () => console.log("Create From Email"),
+              onClick: () => {
+                setEmailUploadAnchorEl(true);
+                console.log("Create From Email");
+              },
               icon: <Mail />,
             },
           ].filter(Boolean)}
@@ -103,6 +121,20 @@ export default function BackToBackTrading() {
       <Box display={tabs === "contractsItems" ? "block" : "none"}>
         <B2BTradingContractsItems />
       </Box>
+      {excelUploadAnchorEl && (
+        <CustomDialogBox
+          open={excelUploadAnchorEl}
+          handleClose={() => setExcelUploadAnchorEl(false)}
+          component={<ExcelUploadForm />}
+        />
+      )}
+      {emailUploadAnchorEl && (
+        <CustomDialogBox
+          open={emailUploadAnchorEl}
+          handleClose={() => setEmailUploadAnchorEl(false)}
+          component={<EmailUploadForm />}
+        />
+      )}
     </Box>
   );
 

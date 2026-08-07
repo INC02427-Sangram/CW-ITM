@@ -7,7 +7,7 @@ import ReusableButtons from "../../components/Common/ReusableButtons";
 import ReusableTile from "../../components/Common/ReusableTile";
 import ReusableDataGrid from "../../components/Common/ReusableDataGrid";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Add, Visibility, Pencil, Copy } from "@cw/rds/icons";
+import { Add, Visibility, Pencil, Copy, PrinterIcon } from "@cw/rds/icons";
 import {
   B2BContractStatCards,
   B2BContractItemsStatCards,
@@ -250,7 +250,7 @@ export default function B2BTradingContracts() {
         slotProps={{
           paper: {
             style: {
-              height:"fit-content"
+              height: "fit-content",
               // maxHeight: 48 * 3,
               // width: "20ch",
             },
@@ -261,7 +261,7 @@ export default function B2BTradingContracts() {
         }}
         onClose={() => setActionAnchorEl(null)}
       >
-        <MenuList>
+        <MenuList sx={{ padding: 0, margin: 0 }}>
           <ActionMenuItem
             title="View Contract"
             icon={<Visibility />}
@@ -299,6 +299,15 @@ export default function B2BTradingContracts() {
                   actionType: "edit",
                 },
               });
+            }}
+          />
+          <ActionMenuItem
+            title="Print Contract"
+            icon={<PrinterIcon />}
+            tooltipTitle="Print Contract"
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log("Printing");
             }}
           />
         </MenuList>

@@ -260,6 +260,13 @@ export default function CreateB2BTradingContractPage() {
       completeContractData.ITM_CTC_ID = null;
       completeContractData.status = "Draft";
     }
+    if( actionType === "edit") {
+      console.log("editing contract");
+    }else if (actionType === "clone") {
+      console.log("cloning contract");
+    }else if (actionType === "create") {
+      console.log("creating contract");
+    }
     // TODO: Add API call to submit the contract data
     // navigate to success page or back to list
   };
