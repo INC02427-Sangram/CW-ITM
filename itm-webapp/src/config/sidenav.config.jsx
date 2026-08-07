@@ -8,6 +8,7 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import { adminConsoleSubNavItems } from "./adminConsole.routes.config";
 
 // Lazy load pages for MainContainer routing
 const Dashboard = lazy(() => import("../pages/Dashboard"));
@@ -141,6 +142,8 @@ export const sideNavConfig = [
     component: AdminConsole,
     showInNav: true,
     index: 8,
+    // Nested modules opened in SubSideNavbar drawer
+    children: adminConsoleSubNavItems,
   },
 ];
 
