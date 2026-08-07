@@ -1,27 +1,18 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { AddUser } from "@cw/adduser";
 
+const USERS_BASE_PATH = "/admin-console/iwa/users";
+
 const CreateUserPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { preferences } = useSelector((state) => state.user);
 
   const selectedEnvironment = import.meta.env.VITE_APP_ENV;
 
-  const onUserActionClick = (action, response) => {
-    if (action === "usersummary") navigate("/userSummary");
-
-    if (response) {
-      const ok = ["success", "SUCCESS", "Success"].includes(response?.status);
-
-      //   dispatch(
-      //     showSnackbar({
-      //       message: ok ? response.message : response?.err?.data?.message,
-
-      //       type: ok ? response.status : response?.err?.data?.status,
-      //     }),
-      //   );
+  const onUserActionClick = (action) => {
+    if (action === "usersummary" || action === "home") {
+      navigate(USERS_BASE_PATH);
     }
   };
 
@@ -29,7 +20,6 @@ const CreateUserPage = () => {
     env: selectedEnvironment,
     consumingApp: "ITM",
     platformName: "btp",
-    // platformUrl: "https://cw-iwa-dev.cherrywork.com/IWAApi/",
   };
 
   const dateTimeConfig = {
@@ -39,13 +29,12 @@ const CreateUserPage = () => {
   };
 
   return (
-    <>
-      <AddUser
-        onUserActionClick={onUserActionClick}
-        dateTimeConfig={dateTimeConfig}
-        platformConfig={platformConfig}
-      />
-      {/* <CustomSnackBar /> */}
-    </>
+    <AddUser
+      onUserActionClick={onUserActionClick}
+      dateTimeConfig={dateTimeConfig}
+      platformConfig={platformConfig}
+    />
   );
 };
+
+export default CreateUserPage;

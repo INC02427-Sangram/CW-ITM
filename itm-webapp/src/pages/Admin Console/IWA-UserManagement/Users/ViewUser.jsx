@@ -1,6 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ViewUser } from "@cw/viewuser";
+import { Box } from "@mui/material";
+
+const USERS_BASE_PATH = "/admin-console/iwa/users";
 
 const ViewUserPage = () => {
   const { userId } = useParams();
@@ -10,24 +13,25 @@ const ViewUserPage = () => {
 
   const selectedEnvironment = import.meta.env.VITE_APP_ENV;
 
-  const viewUserNavigate = (action, userId) => {
-    if (action === "home") navigate("/userSummary");
+  const viewUserNavigate = (action, targetUserId) => {
+    if (action === "home") navigate(USERS_BASE_PATH);
 
-    if (action === "edit") navigate(`/editUser/${userId}`);
+    if (action === "edit") {
+      navigate(`${USERS_BASE_PATH}/editUser/${targetUserId}`);
+    }
   };
 
   const userDetailsVisibility = {
     "basic-details": true,
     "official-details": true,
     "data-level-access": true,
-
     roles: true,
     "additional-info": true,
     "user-preferences": true,
-
     "connected-systems": true,
     "activity-log": true,
   };
+
   const dateTimeConfig = {
     dateFormat: preferences.dateFormat,
     timeFormat: preferences.timeFormat,
@@ -37,13 +41,12 @@ const ViewUserPage = () => {
   const platformConfig = {
     env: selectedEnvironment,
     consumingApp: "ITM",
-
     platformName: "btp",
     platformUrl: "https://cw-iwa-dev.cherrywork.com/IWAApi/",
   };
 
   return (
-    <>
+    <Box className="outermost-container">
       <ViewUser
         userId={userId}
         viewUserNavigate={viewUserNavigate}
@@ -52,8 +55,8 @@ const ViewUserPage = () => {
         dateTimeConfig={dateTimeConfig}
         platformConfig={platformConfig}
       />
-
-      {/* <CustomSnackBar /> */}
-    </>
+    </Box>
   );
 };
+
+export default ViewUserPage;

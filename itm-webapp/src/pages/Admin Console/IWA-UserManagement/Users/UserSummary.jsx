@@ -1,5 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { UserSummary } from "@cw/usersummary";
+import { iwaUsersRoutes } from "../../../../config/adminConsole.routes.config";
+import { Box } from "@mui/material";
+
+const USERS_BASE_PATH = "/admin-console/iwa/users";
 
 const UserSummaryPage = () => {
   const navigate = useNavigate();
@@ -13,10 +17,10 @@ const UserSummaryPage = () => {
     console.log("userId type =", typeof userId);
 
     const actionMap = {
-      view: () => userId && navigate(`/viewUser/${userId}`),
-      edit: () => userId && navigate(`/editUser/${userId}`),
-      adduser: () => navigate("/userSummary/createUser"),
-      quickadduser: () => navigate("/userSummary/quickCreateUser"),
+      view: () => userId && navigate(`${USERS_BASE_PATH}/viewUser/${userId}`),
+      edit: () => userId && navigate(`${USERS_BASE_PATH}/editUser/${userId}`),
+      adduser: () => navigate(`${USERS_BASE_PATH}/createUser`),
+      quickadduser: () => navigate(`${USERS_BASE_PATH}/quickCreateUser`),
     };
 
     if (typeof action === "string") {
@@ -37,12 +41,28 @@ const UserSummaryPage = () => {
     platformUrl: "https://cw-iwa-dev.cherrywork.com/IWAApi/",
   };
 
+  const userSummaryView = (
+    <Box className="outermost-container">
+      <UserSummary
+        dateTimeConfig={dateTimeConfig}
+        platformConfig={platformConfig}
+        onUserSummaryActionClick={onUserSummaryActionClick}
+        app={"IWA"}
+      />
+    </Box>
+  );
+
   return (
-    <UserSummary
-      dateTimeConfig={dateTimeConfig}
-      platformConfig={platformConfig}
-      onUserSummaryActionClick={onUserSummaryActionClick}
-    />
+    <Routes>
+      <Route index element={userSummaryView} />
+      {iwaUsersRoutes.map((route) => (
+        <Route
+          key={route.id}
+          path={route.path}
+          element={<route.component />}
+        />
+      ))}
+    </Routes>
   );
 };
 

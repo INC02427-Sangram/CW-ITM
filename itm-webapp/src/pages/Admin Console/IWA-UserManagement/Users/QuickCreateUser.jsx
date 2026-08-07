@@ -1,28 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { QuickAddUser } from "@cw/quickadduser";
+import { Box } from "@mui/material";
+
+const USERS_BASE_PATH = "/admin-console/iwa/users";
 
 const QuickCreateUserPage = () => {
   const navigate = useNavigate();
-
-  const dispatch = useDispatch();
   const { preferences } = useSelector((state) => state.user);
 
   const selectedEnvironment = import.meta.env.VITE_APP_ENV;
 
-  const onUserActionClick = (action, response) => {
-    if (action === "home" || action === "usersummary") navigate("/userSummary");
-
-    if (response)
-      dispatch(
-        // showSnackbar({ message: response?.message, type: response?.status }),
-      );
+  const onUserActionClick = (action) => {
+    if (action === "home" || action === "usersummary") {
+      navigate(USERS_BASE_PATH);
+    }
   };
 
   const platformConfig = {
     env: selectedEnvironment,
     consumingApp: "ITM",
-
     platformName: "btp",
     platformUrl: "https://cw-iwa-dev.cherrywork.com/IWAApi/",
   };
@@ -34,7 +31,7 @@ const QuickCreateUserPage = () => {
   };
 
   return (
-    <Box className={styles.container}>
+    <Box className="outermost-container">
       <QuickAddUser
         onUserActionClick={onUserActionClick}
         platformConfig={platformConfig}
@@ -43,3 +40,5 @@ const QuickCreateUserPage = () => {
     </Box>
   );
 };
+
+export default QuickCreateUserPage;

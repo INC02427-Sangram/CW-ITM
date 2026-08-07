@@ -132,5 +132,40 @@ export const iwaRoutes = [
   },
 ];
 
+/**
+ * Nested routes under /admin-console/iwa/users
+ */
+export const iwaUsersRoutes = [
+  {
+    id: "create-user",
+    path: "createUser",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Users/CreateUser"),
+    ),
+  },
+  {
+    id: "quick-create-user",
+    path: "quickCreateUser",
+    component: lazy(
+      () =>
+        import("../pages/Admin Console/IWA-UserManagement/Users/QuickCreateUser"),
+    ),
+  },
+  {
+    id: "view-user",
+    path: "viewUser/:userId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Users/ViewUser"),
+    ),
+  },
+  {
+    id: "edit-user",
+    path: "editUser/:userId",
+    component: lazy(
+      () => import("../pages/Admin Console/IWA-UserManagement/Users/EditUser"),
+    ),
+  },
+];
+
 export const getAdminConsoleSubNavItems = () =>
   [...adminConsoleSubNavItems].sort((a, b) => a.index - b.index);
