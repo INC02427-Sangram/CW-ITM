@@ -1,17 +1,49 @@
-import { Box, Typography } from "@mui/material";
-import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { UserSummary } from "@cw/usersummary";
 
-export default function UserSummary() {
-  const { t } = useTranslation();
+const UserSummaryPage = () => {
+  const navigate = useNavigate();
+
+  const selectedEnvironment = String(import.meta.env.VITE_APP_ENV || "");
+
+  const onUserSummaryActionClick = (action, userId) => {
+    console.log("action =", action);
+    console.log("action type =", typeof action);
+    console.log("userId =", userId);
+    console.log("userId type =", typeof userId);
+
+    const actionMap = {
+      view: () => userId && navigate(`/viewUser/${userId}`),
+      edit: () => userId && navigate(`/editUser/${userId}`),
+      adduser: () => navigate("/userSummary/createUser"),
+      quickadduser: () => navigate("/userSummary/quickCreateUser"),
+    };
+
+    if (typeof action === "string") {
+      actionMap[action.trim()]?.();
+    }
+  };
+
+  const dateTimeConfig = {
+    dateFormat: "DD-MM-YYYY",
+    timeFormat: "24hr",
+    snackbarTime: 7000,
+  };
+
+  const platformConfig = {
+    env: selectedEnvironment,
+    consumingApp: "ITM",
+    platformName: "btp",
+    platformUrl: "https://cw-iwa-dev.cherrywork.com/IWAApi/",
+  };
 
   return (
-    <Box className="outermost-container">
-      <Typography variant="h5" fontWeight={600} gutterBottom>
-        {t("Users")}
-      </Typography>
-      <Typography variant="body1" color="text.secondary">
-        User management content will be loaded here.
-      </Typography>
-    </Box>
+    <UserSummary
+      dateTimeConfig={dateTimeConfig}
+      platformConfig={platformConfig}
+      onUserSummaryActionClick={onUserSummaryActionClick}
+    />
   );
-}
+};
+
+export default UserSummaryPage;
