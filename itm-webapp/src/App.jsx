@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import "./App.css";
@@ -30,7 +30,7 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="App">
         <AppHeader />
         <div className="appContent">
@@ -38,7 +38,7 @@ function App() {
           <MainContainer />
         </div>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

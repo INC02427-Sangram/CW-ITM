@@ -28,6 +28,12 @@
       "csrfProtection": false
     },
     {
+      "source": "^/((?!.*\\.).*)$",
+      "target": "cw_itm_ui/index.html",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
+    },
+    {
       "source": "^(.*)",
       "target": "cw_itm_ui/$1",
       "service": "html5-apps-repo-rt",
