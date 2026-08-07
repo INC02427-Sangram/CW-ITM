@@ -231,5 +231,41 @@ export const iwaGroupsRoutes = [
   },
 ];
 
+/**
+ * Nested routes under /admin-console/iwa/roles
+ */
+export const iwaRolesRoutes = [
+  {
+    id: "create-role",
+    path: "createRole",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/Roles/CreateRoleContainer"
+        ),
+    ),
+  },
+  {
+    id: "view-role",
+    path: "viewRole/:roleId/:roleVersionNo/:roleSegment",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/Roles/EditandViewRole"
+        ),
+    ),
+  },
+  {
+    id: "edit-role",
+    path: "editRole/:roleId/:roleVersionNo/:roleSegment",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/Roles/EditandViewRole"
+        ),
+    ),
+  },
+];
+
 export const getAdminConsoleSubNavItems = () =>
   [...adminConsoleSubNavItems].sort((a, b) => a.index - b.index);
