@@ -167,5 +167,41 @@ export const iwaUsersRoutes = [
   },
 ];
 
+/**
+ * Nested routes under /admin-console/iwa/application-master
+ */
+export const iwaApplicationMasterRoutes = [
+  {
+    id: "create-application",
+    path: "createApplication",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/ApplicationMaster/CreateApplications"
+        ),
+    ),
+  },
+  {
+    id: "view-application",
+    path: "viewApplication/:appId",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/ApplicationMaster/ViewApplication"
+        ),
+    ),
+  },
+  {
+    id: "edit-application",
+    path: "editApplication/:appId",
+    component: lazy(
+      () =>
+        import(
+          "../pages/Admin Console/IWA-UserManagement/ApplicationMaster/EditApplication"
+        ),
+    ),
+  },
+];
+
 export const getAdminConsoleSubNavItems = () =>
   [...adminConsoleSubNavItems].sort((a, b) => a.index - b.index);
