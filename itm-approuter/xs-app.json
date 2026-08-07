@@ -22,10 +22,16 @@
     },
     {
       "source": "^/api/(.*)$",
-      "target":"/$1",
+      "target":"/api/$1",
       "destination":"cw-itm-contract-service",
       "authenticationType":"xsuaa", 
       "csrfProtection": false
+    },
+    {
+      "source": "^/((?!.*\\.).*)$",
+      "target": "cw_itm_ui/index.html",
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
     },
     {
       "source": "^(.*)",
